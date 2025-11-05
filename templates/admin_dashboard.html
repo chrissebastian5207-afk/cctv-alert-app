@@ -1,0 +1,47 @@
+{% extends "layout.html" %}
+{% block content %}
+<h4>Admin Dashboard</h4>
+<p>Click buttons below to send alerts:</p>
+
+<div class="row g-3 mb-3">
+  <div class="col-6 col-md-3"><button class="btn btn-danger w-100 send-alert" data-title="Fire" data-priority="High">🔥 Fire Alert</button></div>
+  <div class="col-6 col-md-3"><button class="btn btn-warning w-100 send-alert" data-title="SOP Violation" data-priority="High">🚷 SOP Violation</button></div>
+  <div class="col-6 col-md-3"><button class="btn btn-info w-100 send-alert" data-title="Camera Offline" data-priority="Low">📸 Camera Offline</button></div>
+  <div class="col-6 col-md-3"><button class="btn btn-secondary w-100 send-alert" data-title="System Failure" data-priority="Medium">⚡ System Failure</button></div>
+</div>
+
+<h5>Recent Alerts</h5>
+<div id="recent-list" class="list-group">
+  {% for a in alerts %}
+  <div class="list-group-item d-flex justify-content-between align-items-start">
+    <div class="ms-2 me-auto">
+      <div class="fw-bold">{{ a.title }}</div>
+      <div class="small text-muted">{{ a.message }}</div>
+    </div>
+    <span class="badge bg-secondary">{{ a.timestamp[:19].replace('T',' ') }}</span>
+  </div>
+  {% else %}
+  <div class="list-group-item">No alerts yet.</div>
+  {% endfor %}
+</div>
+
+<script>
+document.querySelectorAll('.send-alert').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const message = prompt(`Enter message for ${btn.dataset.title}:`);
+    if (!message) return;
+    const res = await fetch('/send_alert', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        title: btn.dataset.title,
+        message,
+        priority: btn.dataset.priority
+      })
+    });
+    const data = await res.json();
+    alert(data.status === 'ok' ? 'Alert sent!' : 'Failed to send alert');
+  });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,23 @@
+[
+  {
+    "id": 1,
+    "title": "SOP Violation",
+    "message": "try",
+    "priority": "High",
+    "timestamp": "2025-11-05T09:34:03.291855Z"
+  },
+  {
+    "id": 2,
+    "title": "Camera Offline",
+    "message": "truai;2",
+    "priority": "Low",
+    "timestamp": "2025-11-05T09:34:24.198827Z"
+  },
+  {
+    "id": 3,
+    "title": "Camera Offline",
+    "message": "i",
+    "priority": "Low",
+    "timestamp": "2025-11-05T09:38:34.436018Z"
+  }
+]
