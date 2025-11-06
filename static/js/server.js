@@ -1,15 +1,13 @@
 /**
- * CCTV Monitor Server.js (Final Stable Build)
+ * CCTV Alert App Server.js (templates version)
  * --------------------------------------------
- * Features:
- * ✅ Secure Registration (first 2 users = admin)
- * ✅ JWT Login System
- * ✅ Delete Account
- * ✅ Change Password
- * ✅ Admin-only User Listing
- * ✅ Helmet + CORS + Cookie Security
- * ✅ SQLite Database
- * ✅ Debug Mode for Play Store Review
+ * Uses 'templates/' as static folder instead of 'public/'
+ * Supports:
+ *  - Register / Login / Logout
+ *  - Admin auto assignment (first 2 users)
+ *  - Change password / Delete account
+ *  - SQLite database
+ *  - JWT authentication
  */
 
 import express from "express";
@@ -22,28 +20,25 @@ import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
 
-// === Setup base paths ===
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// === Initialize app & database ===
 const app = express();
 const db = new Database("./users.db");
-
-const JWT_SECRET = "super_secure_jwt_key_here"; // ⚠️ Replace before production
+const JWT_SECRET = "super_secure_jwt_key_here"; // change before production
 const PORT = process.env.PORT || 3000;
-const DEBUG_MODE = false; // ✅ Turn ON (true) only during Play Store review
+const DEBUG_MODE = false; // set true if you want all new users to be admins for testing
 
-// === Middleware ===
+// --- Middleware ---
 app.use(express.json());
 app.use(cookieParser());
 app.use(helmet());
 app.use(cors({ origin: true, credentials: true }));
 
-// === Serve all frontend files ===
-app.use(express.static(path.join(__dirname, "public")));
+// --- Serve static files from templates/ ---
+app.use(express.static(path.join(__dirname, "templates")));
 
-// === Create database if not exists ===
+// --- Create DB if not exists ---
 db.exec(`
 CREATE TABLE IF NOT EXISTS users (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -55,7 +50,7 @@ CREATE TABLE IF NOT EXISTS users (
 );
 `);
 
-// === Helper functions ===
+// --- Helper functions ---
 function signToken(payload) {
   return jwt.sign(payload, JWT_SECRET, { expiresIn: "7d" });
 }
@@ -67,7 +62,7 @@ function verifyToken(token) {
   }
 }
 
-// === AUTH MIDDLEWARE ===
+// --- Auth Middleware ---
 function authMiddleware(req, res, next) {
   const token = req.cookies?.token;
   if (!token) return res.status(401).json({ error: "Not logged in" });
@@ -90,7 +85,7 @@ app.post("/api/register", (req, res) => {
   try {
     const count = db.prepare("SELECT COUNT(*) AS c FROM users").get().c;
     let role = count < 2 ? "admin" : "user";
-    if (DEBUG_MODE) role = "admin"; // during review
+    if (DEBUG_MODE) role = "admin";
 
     const salt = bcrypt.genSaltSync(12);
     const hash = bcrypt.hashSync(password, salt);
@@ -142,7 +137,7 @@ app.post("/api/login", (req, res) => {
 });
 
 // =====================================================
-// 🔹 GET CURRENT USER
+// 🔹 CURRENT USER
 // =====================================================
 app.get("/api/me", authMiddleware, (req, res) => {
   res.json({ ok: true, user: req.user });
@@ -187,7 +182,7 @@ app.post("/api/change-password", authMiddleware, (req, res) => {
 });
 
 // =====================================================
-// 🔹 ADMIN: VIEW ALL USERS
+// 🔹 ADMIN: VIEW USERS
 // =====================================================
 app.get("/api/users", authMiddleware, (req, res) => {
   if (req.user.role !== "admin")
@@ -201,10 +196,10 @@ app.get("/api/users", authMiddleware, (req, res) => {
 });
 
 // =====================================================
-// 🔹 DEFAULT ROUTE
+// 🔹 DEFAULT ROUTE (use templates folder)
 // =====================================================
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "login.html"));
+  res.sendFile(path.join(__dirname, "templates", "login.html"));
 });
 
 // =====================================================
