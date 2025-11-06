@@ -1,39 +1,39 @@
 {% extends "layout.html" %}
 {% block content %}
 <div class="row justify-content-center">
-  <div class="col-12 col-sm-8 col-md-6">
-    <div class="card bg-black border-2 border-success">
+  <div class="col-12 col-sm-10 col-md-6">
+    <div class="card bg-panel border-success">
       <div class="card-body">
-        <h3 class="card-title text-warning text-center mb-3">CCTV ALERTS - Login</h3>
+        <h3 class="text-warning text-center mb-3">CCTV ALERTS — SIGN IN</h3>
 
         {% if error %}
           <div class="alert alert-danger">{{ error }}</div>
         {% endif %}
 
-        <form method="POST" id="loginForm">
+        <form method="POST" id="loginForm" class="mb-2">
           <div class="mb-2">
-            <label class="form-label small">Role</label>
-            <select name="user_type" class="form-select" required>
+            <label class="form-label small text-muted">Role</label>
+            <select name="user_type" class="form-select bg-dark text-light" required>
               <option value="admin">Admin</option>
               <option value="user">User</option>
             </select>
           </div>
 
           <div class="mb-2">
-            <input type="text" name="username" class="form-control" placeholder="Username" required>
+            <input type="text" name="username" class="form-control bg-dark text-light" placeholder="Username" required>
           </div>
 
           <div class="mb-2">
-            <input type="password" name="password" class="form-control" placeholder="Password" required>
+            <input type="password" name="password" class="form-control bg-dark text-light" placeholder="Password" required>
           </div>
 
-          <div class="d-grid gap-2">
-            <button class="btn btn-warning" type="submit">Login</button>
+          <div class="d-grid">
+            <button class="btn btn-danger" type="submit">Login</button>
           </div>
         </form>
 
-        <div class="mt-3 text-muted small">
-          Demo creds: admin/admin123  |  user/user123
+        <div class="text-center small text-muted mt-2">
+          Demo: admin/admin123  •  user/user123
         </div>
       </div>
     </div>
@@ -41,10 +41,9 @@
 </div>
 
 <script>
-  // Set localStorage flag after successful form submit.
-  // This will mark client as logged in locally; server session still applies.
-  document.getElementById('loginForm').addEventListener('submit', function(){
-    localStorage.setItem('cctv_logged_in', 'true');
-  });
+document.getElementById('loginForm').addEventListener('submit', function() {
+  // mark as logged locally after submit (server session still required)
+  localStorage.setItem('cctv_logged_in', 'true');
+});
 </script>
 {% endblock %}

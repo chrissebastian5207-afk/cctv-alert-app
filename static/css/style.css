@@ -1,26 +1,41 @@
-/* static/css/style.css - Military CCTV theme (dark) */
+/* Tactical Military UI - static/css/style.css */
 
-body { background: #060606; color: #ddd; font-family: Inter, Arial, sans-serif; }
-.app-brand { color: #e6b800; font-weight: 700; letter-spacing: 1px; }
-
-.card { border-radius: 8px; }
-.card .card-body { background: #0b0b0b; }
-
-.list-group-item { background: #080808; border: 1px solid #111; color: #ddd; }
-.alert-title { color: #ffcc00; font-weight: 700; }
-.alert-message { color: #cfcfcf; }
-.alert-time { background: #2b2b2b; color: #ddd; padding: 6px 10px; border-radius: 20px; }
-
-.btn-warning { background: #d9534f; border-color: #b7403b; color: #fff; }
-.btn-outline-light { border-color: #6b6b6b; color: #ddd; }
-
-/* priorities (optional) */
-.priority.high { color: #fff; background: #b30000; padding: 2px 8px; border-radius: 6px; }
-.priority.medium { color: #fff; background: #a86b00; padding: 2px 8px; border-radius: 6px; }
-.priority.low { color: #000; background: #e6b800; padding: 2px 8px; border-radius: 6px; }
-
-/* small responsive tweaks */
-@media (max-width: 576px) {
-  .card { margin-bottom: 12px; }
-  .app-brand { font-size: 14px; }
+:root{
+  --bg:#050605;
+  --panel:#08100b;
+  --accent:#9bbf6a;
+  --accent-strong:#8ab040;
+  --danger:#c72b2b;
+  --muted:#9aa39a;
+  --glass: rgba(255,255,255,0.03);
 }
+
+body.bg-tactical { background: linear-gradient(180deg, #030403 0%, #07100a 100%); color:#dfe6d8; font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;}
+
+.app-icon { width:36px; height:36px; border-radius:6px; object-fit:cover; box-shadow:0 4px 12px rgba(0,0,0,0.6); }
+.app-brand { color:var(--accent); font-weight:800; letter-spacing:1px; font-size:18px; }
+
+.navbar { background: rgba(2,2,2,0.6); border-bottom:1px solid rgba(255,255,255,0.03); }
+
+.card.bg-panel { background: linear-gradient(180deg, #07120a 0%, #04120a 100%); border:1px solid rgba(255,255,255,0.03); box-shadow: 0 6px 24px rgba(0,0,0,0.6); border-radius:10px; }
+
+.btn-neon { background: linear-gradient(90deg,#7aa236,#9bbf6a); color:#04120a; font-weight:700; border:0; box-shadow: 0 6px 18px rgba(138,176,64,0.09); }
+.btn-danger { background: linear-gradient(90deg,#c72b2b,#a51f1f); color:#fff; border:0; font-weight:700; }
+
+.list-group-item { background: rgba(0,0,0,0.35); border:1px solid rgba(255,255,255,0.03); margin-bottom:6px; border-radius:8px; padding:12px; }
+.alert-title { color: var(--accent); font-weight:800; }
+.alert-message { color: var(--muted); margin-top:6px; }
+.alert-time { background: rgba(255,255,255,0.04); color:#dfe6d8; padding:6px 10px; border-radius:20px; }
+
+.small.text-muted { color: rgba(255,255,255,0.45); }
+
+.card .card-body h4, .card .card-body h5 { color: var(--accent-strong); }
+
+@media (max-width: 768px) {
+  .app-brand { font-size:16px }
+  .app-icon { width:30px; height:30px; }
+  .container { padding-left:8px; padding-right:8px; }
+}
+
+/* Buttons layout */
+.quick-btn { padding:14px; font-weight:700; border-radius:8px; color:#070707; }

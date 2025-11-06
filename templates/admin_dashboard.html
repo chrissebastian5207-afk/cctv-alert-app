@@ -1,56 +1,64 @@
 {% extends "layout.html" %}
 {% block content %}
-<!-- Auto-login check -->
 <script>
   if (!localStorage.getItem('cctv_logged_in')) {
     window.location.href = '/';
   }
 </script>
 
-<div class="row">
-  <div class="col-12 col-md-6">
-    <div class="card bg-black border-success mb-3">
+<div class="row g-3">
+  <div class="col-12 col-xl-5">
+    <div class="card bg-panel border-2">
       <div class="card-body">
-        <h4 class="card-title text-warning">Send Alert</h4>
+        <h4 class="text-warning mb-2">Quick Alerts</h4>
 
-        <div class="mb-2">
-          <input id="title" class="form-control bg-dark text-light" placeholder="Alert title" value="Security Alert">
+        <div class="row g-2 mb-3">
+          <!-- Buttons set B -->
+          <div class="col-6"><button class="btn btn-neon w-100 quick-btn" data-title="Fire / Smoke" data-priority="High">🔥 Fire / Smoke</button></div>
+          <div class="col-6"><button class="btn btn-neon w-100 quick-btn" data-title="Emergency Response Needed" data-priority="High">🧯 Emergency</button></div>
+
+          <div class="col-6"><button class="btn btn-warning w-100 quick-btn" data-title="Perimeter Breach" data-priority="High">🛑 Perimeter Breach</button></div>
+          <div class="col-6"><button class="btn btn-warning w-100 quick-btn" data-title="Door Forced Open" data-priority="High">🚪 Door Forced</button></div>
+
+          <div class="col-6"><button class="btn btn-outline-warning w-100 quick-btn" data-title="Unknown Person Detected" data-priority="High">👤 Unknown Person</button></div>
+          <div class="col-6"><button class="btn btn-outline-warning w-100 quick-btn" data-title="Camera Tampered" data-priority="Medium">📡 Camera Tampered</button></div>
         </div>
 
+        <h5 class="text-muted small mb-2">Manual Alert</h5>
         <div class="mb-2">
-          <textarea id="message" class="form-control bg-dark text-light" rows="3" placeholder="Write a short message...">SOP violation detected</textarea>
+          <input id="manual-title" class="form-control bg-dark text-light" placeholder="Custom title" value="Security Alert">
         </div>
-
         <div class="mb-2">
-          <select id="priority" class="form-select bg-dark text-light">
+          <textarea id="manual-message" class="form-control bg-dark text-light" rows="3" placeholder="Write message...">SOP violation detected</textarea>
+        </div>
+        <div class="mb-2">
+          <select id="manual-priority" class="form-select bg-dark text-light">
             <option value="High">High</option>
-            <option selected value="Medium">Medium</option>
+            <option value="Medium" selected>Medium</option>
             <option value="Low">Low</option>
           </select>
         </div>
-
         <div class="d-flex gap-2">
-          <button id="sendBtn" class="btn btn-danger" onclick="sendAlert()">Send Alert 🚨</button>
-          <button id="testBtn" class="btn btn-secondary" onclick="testLocalAlert()">Test Local Sound</button>
+          <button id="sendManual" class="btn btn-danger flex-grow-1">Send Manual Alert</button>
+          <button id="testSound" class="btn btn-outline-light">Test Sound</button>
         </div>
-
       </div>
     </div>
 
-    <div class="card bg-black border-2">
+    <div class="card bg-panel border-2 mt-3">
       <div class="card-body">
-        <h5 class="text-warning">Recent (admin view)</h5>
+        <h5 class="text-warning">Recent Alerts (Admin)</h5>
         <div id="recent-list" class="list-group mt-2">
           {% for a in alerts %}
-          <div class="list-group-item d-flex justify-content-between align-items-start">
-            <div class="ms-2 me-auto">
-              <div class="fw-bold">{{ a.title }}</div>
-              <div class="small text-muted">{{ a.message }}</div>
+            <div class="list-group-item d-flex justify-content-between align-items-start">
+              <div class="ms-2 me-auto">
+                <div class="fw-bold">{{ a.title }}</div>
+                <div class="small text-muted">{{ a.message }}</div>
+              </div>
+              <span class="badge bg-secondary rounded-pill">{{ a.timestamp[:19].replace('T',' ') if a.timestamp else '' }}</span>
             </div>
-            <span class="badge bg-secondary rounded-pill">{{ a.timestamp[:19].replace('T',' ') if a.timestamp else '' }}</span>
-          </div>
           {% else %}
-          <div class="list-group-item">No alerts yet.</div>
+            <div class="list-group-item">No alerts yet.</div>
           {% endfor %}
         </div>
       </div>
@@ -58,47 +66,64 @@
 
   </div>
 
-  <div class="col-12 col-md-6">
-    <div class="card bg-black border-danger">
+  <div class="col-12 col-xl-7">
+    <div class="card bg-panel border-2">
       <div class="card-body">
-        <h5 class="text-warning">Live Preview</h5>
-        <p class="text-muted small">Connected clients will receive alerts in real-time.</p>
+        <h5 class="text-warning">Live Preview & Tools</h5>
+        <p class="text-muted small">Connected users will receive alerts instantly.</p>
 
-        <div class="mt-3">
-          <div class="small text-muted mb-1">Install / Sound</div>
-          <button id="enableSound" class="btn btn-sm btn-outline-light mb-2">Enable Sound 🔊</button>
-          <div class="small text-muted">Click Enable Sound once on each device to allow autoplay.</div>
+        <div class="d-flex gap-2 align-items-center">
+          <button id="enableSoundAdmin" class="btn btn-sm btn-outline-light">Enable Sound 🔊</button>
+          <button id="openUser" class="btn btn-sm btn-secondary">Open User View</button>
         </div>
 
+        <hr class="my-3">
+
+        <div class="small text-muted">
+          Tip: Use Quick Alerts for fast testing. Manual send will create a persistent record.
+        </div>
       </div>
     </div>
   </div>
 </div>
 
 <script>
-async function sendAlert() {
-  const title = document.getElementById('title').value || 'Alert';
-  const message = document.getElementById('message').value || '';
-  const priority = document.getElementById('priority').value || 'Medium';
+// admin client behavior
+document.querySelectorAll('.quick-btn').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const title = btn.dataset.title || 'Alert';
+    const priority = btn.dataset.priority || 'High';
+    const message = prompt(`Send "${title}" - enter message:`, `${title} detected`);
+    if (!message) return;
+    sendAlertPayload({ title, message, priority });
+  });
+});
 
-  if (!message.trim()) { alert('Please enter a message'); return; }
+document.getElementById('sendManual').addEventListener('click', () => {
+  const title = document.getElementById('manual-title').value || 'Alert';
+  const message = document.getElementById('manual-message').value || '';
+  const priority = document.getElementById('manual-priority').value || 'Medium';
+  if (!message.trim()) { alert('Enter a message'); return; }
+  sendAlertPayload({ title, message, priority });
+});
 
+async function sendAlertPayload(payload) {
   try {
     const resp = await fetch('/send_alert', {
       method: 'POST',
       credentials: 'same-origin',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, message, priority })
+      body: JSON.stringify(payload)
     });
     const js = await resp.json();
     if (js.status === 'ok') {
-      // Prepend to admin list immediately
+      // prepend admin list instantly
       const rlist = document.getElementById('recent-list');
       const node = document.createElement('div');
       node.className = 'list-group-item d-flex justify-content-between align-items-start';
       node.innerHTML = `<div class="ms-2 me-auto"><div class="fw-bold">${js.alert.title}</div><div class="small text-muted">${js.alert.message}</div></div><span class="badge bg-secondary rounded-pill">${js.alert.timestamp.slice(0,19).replace('T',' ')}</span>`;
       rlist.prepend(node);
-      document.getElementById('message').value = '';
+      document.getElementById('manual-message').value = '';
     } else {
       alert('Failed: ' + (js.message || 'unknown'));
     }
@@ -107,22 +132,13 @@ async function sendAlert() {
   }
 }
 
-// local test sound
-document.getElementById('enableSound').addEventListener('click', () => {
-  const a = new Audio('/static/sounds/alert.wav');
-  a.volume = 1.0;
-  a.play().then(() => {
-    alert('Sound enabled on this device');
-  }).catch(() => {
-    alert('Sound blocked — tap anywhere on screen then try again');
-  });
+document.getElementById('testSound').addEventListener('click', () => {
+  const a = new Audio('/static/sounds/alert.wav'); a.volume = 1; a.play().catch(()=>alert('Sound blocked: tap enable sound first'));
 });
-
-// quick local test without sending to server
-function testLocalAlert() {
-  const a = new Audio('/static/sounds/alert.wav');
-  a.volume = 1.0;
-  a.play().catch(()=>{ alert('Sound blocked — enable sound first'); });
-}
+document.getElementById('enableSoundAdmin').addEventListener('click', () => {
+  const a = new Audio('/static/sounds/alert.wav'); a.volume = 1; a.play().then(()=>alert('Sound enabled')).catch(()=>alert('Tap anywhere then try again'));
+});
+document.getElementById('openUser').addEventListener('click', () => window.open('/', '_blank'));
 </script>
+
 {% endblock %}
