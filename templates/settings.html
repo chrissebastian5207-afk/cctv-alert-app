@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Settings | CCTV Monitor</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="card">
+    <h2>Settings</h2>
+
+    <section>
+      <h3>Appearance</h3>
+      <label>
+        <input type="checkbox" id="darkToggle"> Enable Dark Mode
+      </label>
+    </section>
+
+    <section>
+      <h3>Notifications</h3>
+      <label>
+        <input type="checkbox" id="notifToggle"> Enable Sound Alerts
+      </label>
+    </section>
+
+    <section>
+      <h3>Account</h3>
+      <button id="deleteAccBtn" class="btn danger">Delete My Account</button>
+      <button id="logoutBtn" class="btn outline">Logout</button>
+    </section>
+
+    <section>
+      <h3>Legal</h3>
+      <a href="https://yourdomain.com/privacy-policy.html" target="_blank">Privacy Policy</a><br>
+      <a href="mailto:youremail@gmail.com">Contact Developer</a>
+    </section>
+
+    <p class="version">App Version 1.0.0</p>
+  </div>
+
+  <script>
+    // === Dark Mode ===
+    const darkToggle = document.getElementById("darkToggle");
+    const prefersDark = localStorage.getItem("darkMode") === "true";
+    document.body.classList.toggle("dark", prefersDark);
+    darkToggle.checked = prefersDark;
+    darkToggle.addEventListener("change", () => {
+      localStorage.setItem("darkMode", darkToggle.checked);
+      document.body.classList.toggle("dark", darkToggle.checked);
+    });
+
+    // === Notifications ===
+    const notifToggle = document.getElementById("notifToggle");
+    notifToggle.checked = localStorage.getItem("alerts") === "true";
+    notifToggle.addEventListener("change", () => {
+      localStorage.setItem("alerts", notifToggle.checked);
+      alert(notifToggle.checked ? "Alerts enabled" : "Alerts disabled");
+    });
+
+    // === Delete Account ===
+    document.getElementById("deleteAccBtn").addEventListener("click", async () => {
+      if (!confirm("Permanently delete your account?")) return;
+      const res = await fetch("/api/delete-account", { method: "DELETE" });
+      const j = await res.json();
+      if (j.ok) {
+        alert("Account deleted successfully.");
+        localStorage.clear();
+        location.href = "register.html";
+      } else alert("Error deleting account.");
+    });
+
+    // === Logout ===
+    document.getElementById("logoutBtn").addEventListener("click", async () => {
+      await fetch("/api/logout", { method: "POST" });
+      alert("Logged out.");
+      location.href = "login.html";
+    });
+  </script>
+</body>
+</html>

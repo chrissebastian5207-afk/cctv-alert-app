@@ -1,49 +1,68 @@
-{% extends "layout.html" %}
-{% block content %}
-<div class="row justify-content-center">
-  <div class="col-12 col-sm-10 col-md-6">
-    <div class="card bg-panel border-success">
-      <div class="card-body">
-        <h3 class="text-warning text-center mb-3">CCTV ALERTS — SIGN IN</h3>
-
-        {% if error %}
-          <div class="alert alert-danger">{{ error }}</div>
-        {% endif %}
-
-        <form method="POST" id="loginForm" class="mb-2">
-          <div class="mb-2">
-            <label class="form-label small text-muted">Role</label>
-            <select name="user_type" class="form-select bg-dark text-light" required>
-              <option value="admin">Admin</option>
-              <option value="user">User</option>
-            </select>
-          </div>
-
-          <div class="mb-2">
-            <input type="text" name="username" class="form-control bg-dark text-light" placeholder="Username" required>
-          </div>
-
-          <div class="mb-2">
-            <input type="password" name="password" class="form-control bg-dark text-light" placeholder="Password" required>
-          </div>
-
-          <div class="d-grid">
-            <button class="btn btn-danger" type="submit">Login</button>
-          </div>
-        </form>
-
-        <div class="text-center small text-muted mt-2">
-          Demo: admin/admin123  •  user/user123
-        </div>
-      </div>
-    </div>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Login | CCTV Monitor</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="card">
+    <h2>Login</h2>
+    <form id="loginForm">
+      <input id="usernameOrEmail" placeholder="Username or Email" required>
+      <input id="password" type="password" placeholder="Password" required>
+      <button class="btn" type="submit">Login</button>
+    </form>
+    <p id="msg"></p>
+    <p>Don't have an account? <a href="register.html">Register</a></p>
   </div>
-</div>
 
-<script>
-document.getElementById('loginForm').addEventListener('submit', function() {
-  // mark as logged locally after submit (server session still required)
-  localStorage.setItem('cctv_logged_in', 'true');
-});
-</script>
-{% endblock %}
+  <script>
+    const form = document.getElementById("loginForm");
+    const msg = document.getElementById("msg");
+
+    form.addEventListener("submit", async e => {
+      e.preventDefault();
+      const data = {
+        usernameOrEmail: document.getElementById("usernameOrEmail").value.trim(),
+        password: document.getElementById("password").value
+      };
+
+      try {
+        const res = await fetch("/api/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data)
+        });
+
+        const j = await res.json();
+        if (!res.ok || !j.ok) {
+          msg.textContent = j.error || "Invalid credentials.";
+          msg.style.color = "red";
+          return;
+        }
+
+        // fetch user info
+        const meRes = await fetch("/api/me");
+        const me = await meRes.json();
+
+        if (me.ok && me.user) {
+          const { role, username } = me.user;
+          msg.textContent = `Welcome ${username} (${role})`;
+          msg.style.color = "limegreen";
+          // Redirect to settings or dashboard
+          setTimeout(() => location.href = "settings.html", 1200);
+        } else {
+          msg.textContent = "Login succeeded but could not fetch user info.";
+          msg.style.color = "orange";
+        }
+      } catch (err) {
+        console.error(err);
+        msg.textContent = "Network error.";
+        msg.style.color = "red";
+      }
+    });
+  </script>
+</body>
+</html>
