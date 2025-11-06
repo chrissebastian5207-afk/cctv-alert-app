@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Dashboard | CCTV Monitor</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="card">
+    <h2>Dashboard</h2>
+    <div id="info">Loading...</div>
+
+    <section id="actions" style="display:none;">
+      <p>
+        <a href="settings.html">Settings</a> |
+        <a href="dashboard.html">Refresh</a>
+      </p>
+      <button id="logoutBtn" class="btn outline">Logout</button>
+    </section>
+  </div>
+
+  <script>
+    async function loadUser() {
+      const res = await fetch("/api/me");
+      const data = await res.json();
+      const info = document.getElementById("info");
+      const actions = document.getElementById("actions");
+
+      if (!data.ok) {
+        info.textContent = "Please login first.";
+        setTimeout(()=> location.href = "login.html", 1000);
+        return;
+      }
+
+      const u = data.user;
+      info.innerHTML = `
+        <p>Welcome, <strong>${u.username}</strong>!</p>
+        <p>Your role: <span style="color:${u.role==='admin'?'#ff9800':'#00c853'}">${u.role.toUpperCase()}</span></p>
+        ${u.role==='admin'
+          ? '<p><a href="admin.html" class="btn">Go to Admin Panel</a></p>'
+          : '<p>You have standard access.</p>'}
+      `;
+      actions.style.display = "block";
+    }
+
+    document.getElementById("logoutBtn").addEventListener("click", async ()=>{
+      await fetch("/api/logout", { method: "POST" });
+      alert("Logged out.");
+      location.href = "login.html";
+    });
+
+    loadUser();
+  </script>
+</body>
+</html>

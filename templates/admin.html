@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Admin Panel | CCTV Monitor</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="card">
+    <h2>Admin Panel</h2>
+    <div id="info">Loading...</div>
+    <table id="userTable" style="display:none;width:100%;margin-top:15px;border-collapse:collapse;">
+      <thead>
+        <tr>
+          <th>ID</th><th>Username</th><th>Email</th><th>Role</th><th>Created</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <button id="logoutBtn" class="btn outline">Logout</button>
+  </div>
+
+  <script>
+    async function loadUsers(){
+      const res = await fetch("/api/users");
+      const data = await res.json();
+      const info = document.getElementById("info");
+      const table = document.getElementById("userTable");
+
+      if(!data.ok){
+        info.textContent = data.error || "Access denied.";
+        return;
+      }
+
+      info.textContent = "Registered Users:";
+      table.style.display = "table";
+      const tbody = table.querySelector("tbody");
+      tbody.innerHTML = "";
+
+      data.users.forEach(u=>{
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${u.id}</td>
+          <td>${u.username}</td>
+          <td>${u.email}</td>
+          <td>${u.role}</td>
+          <td>${new Date(u.created_at).toLocaleString()}</td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    document.getElementById("logoutBtn").addEventListener("click", async ()=>{
+      await fetch("/api/logout", { method:"POST" });
+      location.href="login.html";
+    });
+
+    loadUsers();
+  </script>
+</body>
+</html>
