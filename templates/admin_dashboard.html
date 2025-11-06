@@ -1,47 +1,128 @@
 {% extends "layout.html" %}
 {% block content %}
-<h4>Admin Dashboard</h4>
-<p>Click buttons below to send alerts:</p>
+<!-- Auto-login check -->
+<script>
+  if (!localStorage.getItem('cctv_logged_in')) {
+    window.location.href = '/';
+  }
+</script>
 
-<div class="row g-3 mb-3">
-  <div class="col-6 col-md-3"><button class="btn btn-danger w-100 send-alert" data-title="Fire" data-priority="High">🔥 Fire Alert</button></div>
-  <div class="col-6 col-md-3"><button class="btn btn-warning w-100 send-alert" data-title="SOP Violation" data-priority="High">🚷 SOP Violation</button></div>
-  <div class="col-6 col-md-3"><button class="btn btn-info w-100 send-alert" data-title="Camera Offline" data-priority="Low">📸 Camera Offline</button></div>
-  <div class="col-6 col-md-3"><button class="btn btn-secondary w-100 send-alert" data-title="System Failure" data-priority="Medium">⚡ System Failure</button></div>
-</div>
+<div class="row">
+  <div class="col-12 col-md-6">
+    <div class="card bg-black border-success mb-3">
+      <div class="card-body">
+        <h4 class="card-title text-warning">Send Alert</h4>
 
-<h5>Recent Alerts</h5>
-<div id="recent-list" class="list-group">
-  {% for a in alerts %}
-  <div class="list-group-item d-flex justify-content-between align-items-start">
-    <div class="ms-2 me-auto">
-      <div class="fw-bold">{{ a.title }}</div>
-      <div class="small text-muted">{{ a.message }}</div>
+        <div class="mb-2">
+          <input id="title" class="form-control bg-dark text-light" placeholder="Alert title" value="Security Alert">
+        </div>
+
+        <div class="mb-2">
+          <textarea id="message" class="form-control bg-dark text-light" rows="3" placeholder="Write a short message...">SOP violation detected</textarea>
+        </div>
+
+        <div class="mb-2">
+          <select id="priority" class="form-select bg-dark text-light">
+            <option value="High">High</option>
+            <option selected value="Medium">Medium</option>
+            <option value="Low">Low</option>
+          </select>
+        </div>
+
+        <div class="d-flex gap-2">
+          <button id="sendBtn" class="btn btn-danger" onclick="sendAlert()">Send Alert 🚨</button>
+          <button id="testBtn" class="btn btn-secondary" onclick="testLocalAlert()">Test Local Sound</button>
+        </div>
+
+      </div>
     </div>
-    <span class="badge bg-secondary">{{ a.timestamp[:19].replace('T',' ') }}</span>
+
+    <div class="card bg-black border-2">
+      <div class="card-body">
+        <h5 class="text-warning">Recent (admin view)</h5>
+        <div id="recent-list" class="list-group mt-2">
+          {% for a in alerts %}
+          <div class="list-group-item d-flex justify-content-between align-items-start">
+            <div class="ms-2 me-auto">
+              <div class="fw-bold">{{ a.title }}</div>
+              <div class="small text-muted">{{ a.message }}</div>
+            </div>
+            <span class="badge bg-secondary rounded-pill">{{ a.timestamp[:19].replace('T',' ') if a.timestamp else '' }}</span>
+          </div>
+          {% else %}
+          <div class="list-group-item">No alerts yet.</div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
   </div>
-  {% else %}
-  <div class="list-group-item">No alerts yet.</div>
-  {% endfor %}
+
+  <div class="col-12 col-md-6">
+    <div class="card bg-black border-danger">
+      <div class="card-body">
+        <h5 class="text-warning">Live Preview</h5>
+        <p class="text-muted small">Connected clients will receive alerts in real-time.</p>
+
+        <div class="mt-3">
+          <div class="small text-muted mb-1">Install / Sound</div>
+          <button id="enableSound" class="btn btn-sm btn-outline-light mb-2">Enable Sound 🔊</button>
+          <div class="small text-muted">Click Enable Sound once on each device to allow autoplay.</div>
+        </div>
+
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
-document.querySelectorAll('.send-alert').forEach(btn => {
-  btn.addEventListener('click', async () => {
-    const message = prompt(`Enter message for ${btn.dataset.title}:`);
-    if (!message) return;
-    const res = await fetch('/send_alert', {
+async function sendAlert() {
+  const title = document.getElementById('title').value || 'Alert';
+  const message = document.getElementById('message').value || '';
+  const priority = document.getElementById('priority').value || 'Medium';
+
+  if (!message.trim()) { alert('Please enter a message'); return; }
+
+  try {
+    const resp = await fetch('/send_alert', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({
-        title: btn.dataset.title,
-        message,
-        priority: btn.dataset.priority
-      })
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title, message, priority })
     });
-    const data = await res.json();
-    alert(data.status === 'ok' ? 'Alert sent!' : 'Failed to send alert');
+    const js = await resp.json();
+    if (js.status === 'ok') {
+      // Prepend to admin list immediately
+      const rlist = document.getElementById('recent-list');
+      const node = document.createElement('div');
+      node.className = 'list-group-item d-flex justify-content-between align-items-start';
+      node.innerHTML = `<div class="ms-2 me-auto"><div class="fw-bold">${js.alert.title}</div><div class="small text-muted">${js.alert.message}</div></div><span class="badge bg-secondary rounded-pill">${js.alert.timestamp.slice(0,19).replace('T',' ')}</span>`;
+      rlist.prepend(node);
+      document.getElementById('message').value = '';
+    } else {
+      alert('Failed: ' + (js.message || 'unknown'));
+    }
+  } catch (e) {
+    alert('Network error sending alert');
+  }
+}
+
+// local test sound
+document.getElementById('enableSound').addEventListener('click', () => {
+  const a = new Audio('/static/sounds/alert.wav');
+  a.volume = 1.0;
+  a.play().then(() => {
+    alert('Sound enabled on this device');
+  }).catch(() => {
+    alert('Sound blocked — tap anywhere on screen then try again');
   });
 });
+
+// quick local test without sending to server
+function testLocalAlert() {
+  const a = new Audio('/static/sounds/alert.wav');
+  a.volume = 1.0;
+  a.play().catch(()=>{ alert('Sound blocked — enable sound first'); });
+}
 </script>
 {% endblock %}

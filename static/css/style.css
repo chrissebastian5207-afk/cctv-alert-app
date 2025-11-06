@@ -1,0 +1,26 @@
+/* static/css/style.css - Military CCTV theme (dark) */
+
+body { background: #060606; color: #ddd; font-family: Inter, Arial, sans-serif; }
+.app-brand { color: #e6b800; font-weight: 700; letter-spacing: 1px; }
+
+.card { border-radius: 8px; }
+.card .card-body { background: #0b0b0b; }
+
+.list-group-item { background: #080808; border: 1px solid #111; color: #ddd; }
+.alert-title { color: #ffcc00; font-weight: 700; }
+.alert-message { color: #cfcfcf; }
+.alert-time { background: #2b2b2b; color: #ddd; padding: 6px 10px; border-radius: 20px; }
+
+.btn-warning { background: #d9534f; border-color: #b7403b; color: #fff; }
+.btn-outline-light { border-color: #6b6b6b; color: #ddd; }
+
+/* priorities (optional) */
+.priority.high { color: #fff; background: #b30000; padding: 2px 8px; border-radius: 6px; }
+.priority.medium { color: #fff; background: #a86b00; padding: 2px 8px; border-radius: 6px; }
+.priority.low { color: #000; background: #e6b800; padding: 2px 8px; border-radius: 6px; }
+
+/* small responsive tweaks */
+@media (max-width: 576px) {
+  .card { margin-bottom: 12px; }
+  .app-brand { font-size: 14px; }
+}
