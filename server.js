@@ -20,10 +20,7 @@ console.log("🧭 Current directory:", __dirname);
 const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
-  cors: {
-    origin: "*",
-    methods: ["GET", "POST"],
-  },
+  cors: { origin: "*", methods: ["GET", "POST"] },
 });
 
 const db = new Database("./users.db");
@@ -83,7 +80,6 @@ app.use(express.static(path.join(__dirname, "static")));
 app.get("/manifest.json", (req, res) => {
   res.sendFile(path.join(__dirname, "manifest.json"));
 });
-
 app.get("/static/js/firebase-config.js", (req, res) => {
   res.sendFile(path.join(__dirname, "static/js/firebase-config.js"));
 });
@@ -126,14 +122,18 @@ function authMiddleware(req, res, next) {
 }
 
 // =====================================================
-// 🔹 FIREBASE ADMIN INITIALIZATION
+// 🔹 FIREBASE ADMIN INITIALIZATION (UPDATED ✅)
 // =====================================================
 try {
   const serviceAccountPath = path.join(__dirname, "serviceAccountKey.json");
+
   if (fs.existsSync(serviceAccountPath)) {
+    const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, "utf-8"));
+
     admin.initializeApp({
-      credential: admin.credential.cert(serviceAccountPath),
+      credential: admin.credential.cert(serviceAccount),
     });
+
     console.log("✅ Firebase Admin initialized");
   } else {
     console.warn("⚠️ serviceAccountKey.json not found — Push notifications disabled.");
@@ -241,7 +241,7 @@ app.get("/api/me", authMiddleware, (req, res) => {
   res.json({ ok: true, user: req.user });
 });
 
-// ✅ Change Password API
+// ✅ Change Password
 app.post("/api/change-password", authMiddleware, (req, res) => {
   const { currentPassword, newPassword } = req.body || {};
   if (!currentPassword || !newPassword)
@@ -259,7 +259,7 @@ app.post("/api/change-password", authMiddleware, (req, res) => {
   res.json({ ok: true, message: "Password updated successfully" });
 });
 
-// ✅ Delete Account API
+// ✅ Delete Account
 app.delete("/api/delete-account", authMiddleware, (req, res) => {
   db.prepare("DELETE FROM users WHERE username = ?").run(req.user.username);
   res.clearCookie("token");
@@ -292,62 +292,11 @@ app.post("/api/send_alert", authMiddleware, async (req, res) => {
   res.json({ status: "ok", alert: newAlert });
 });
 
-// ✅ Delete Alert API
-app.delete("/api/alert/:id", authMiddleware, (req, res) => {
-  if (req.user.role !== "admin")
-    return res.status(403).json({ status: "error", message: "Unauthorized" });
-
-  const alertId = parseInt(req.params.id);
-  if (!alertId) return res.status(400).json({ status: "error", message: "Invalid ID" });
-
-  const alerts = loadAlerts();
-  const index = alerts.findIndex((a) => a.id === alertId);
-  if (index === -1) return res.status(404).json({ status: "error", message: "Alert not found" });
-
-  const [deleted] = alerts.splice(index, 1);
-  saveAlerts(alerts);
-  io.emit("deleteAlert", { id: alertId });
-
-  console.log(`🗑 Deleted alert #${alertId}: ${deleted.title}`);
-  res.json({ status: "ok" });
-});
-
 app.get("/api/alerts", authMiddleware, (req, res) => {
   const alerts = loadAlerts();
   res.json({ ok: true, alerts: alerts.reverse() });
 });
 
-// =====================================================
-// 🔹 HEALTH CHECK
-// =====================================================
-app.get("/api/ping", (req, res) => {
-  res.json({ pong: true, time: new Date().toISOString() });
-});
-
-app.get("/health", (req, res) => {
-  res.json({ status: "healthy", time: new Date().toISOString() });
-});
-
-// =====================================================
-// 🔹 ROUTES
-// =====================================================
-app.get("/", (req, res) => res.sendFile(path.join(__dirname, "templates", "login.html")));
-app.get("/register", (req, res) => res.sendFile(path.join(__dirname, "templates", "register.html")));
-app.get("/admin", (req, res) => res.sendFile(path.join(__dirname, "templates", "admin_dashboard.html")));
-app.get("/user", (req, res) => res.sendFile(path.join(__dirname, "templates", "user_dashboard.html")));
-app.get("/settings", (req, res) => res.sendFile(path.join(__dirname, "templates", "settings.html")));
-app.get("/privacy", (req, res) => res.sendFile(path.join(__dirname, "templates", "privacy.html")));
-app.get("/contact", (req, res) => res.sendFile(path.join(__dirname, "templates", "contact.html")));
-
-// =====================================================
-// 🔹 SOCKET.IO
-// =====================================================
-// =====================================================
-// =====================================================
-// ✅ SOCKET.IO CONNECTION HANDLER
-// =====================================================
-// ✅ SOCKET.IO CONNECTION HANDLER
-// =====================================================
 // =====================================================
 // 🔹 SOCKET.IO
 // =====================================================
@@ -387,4 +336,3 @@ httpServer.listen(PORT, () => {
   }
   process.exit(1);
 });
-

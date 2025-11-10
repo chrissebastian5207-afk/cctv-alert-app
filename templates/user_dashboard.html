@@ -8,6 +8,19 @@
   <link rel="manifest" href="/manifest.json">
   <link rel="icon" href="/icons/icon-192.png">
 
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging-compat.js"></script>
+<script src="/static/js/firebase-config.js"></script>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/firebase-messaging-sw.js')
+      .then(reg => console.log('✅ FCM Service Worker registered:', reg.scope))
+      .catch(err => console.error('❌ FCM registration failed:', err));
+  }
+</script>
+
+
   <!-- ✅ Verify role before rendering -->
   <script>
     document.documentElement.style.visibility = "hidden"; // hide until verified
