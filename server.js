@@ -3,7 +3,7 @@ import path from "path";
 import fs from "fs";
 import express from "express";
 import Database from "better-sqlite3";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import cookieParser from "cookie-parser";
 import helmet from "helmet";
