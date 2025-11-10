@@ -1,11 +1,12 @@
 {
   "name": "cctv-alert-app",
   "version": "1.0.0",
-  "description": "CCTV Alert System with Admin/User dashboards, Socket.IO, and Firebase",
+  "description": "CCTV Alert System with Admin/User dashboards, Socket.IO, and Firebase integration",
   "main": "server.js",
   "type": "module",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "build": "npm install"
   },
   "dependencies": {
     "bcrypt": "^5.1.0",
@@ -17,5 +18,8 @@
     "helmet": "^7.0.0",
     "jsonwebtoken": "^9.0.0",
     "socket.io": "^4.6.0"
+  },
+  "engines": {
+    "node": "20.x"
   }
 }
