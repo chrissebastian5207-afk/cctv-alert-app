@@ -342,13 +342,21 @@ app.get("/contact", (req, res) => res.sendFile(path.join(__dirname, "templates",
 // =====================================================
 // 🔹 SOCKET.IO
 // =====================================================
+// =====================================================
+// =====================================================
+// ✅ SOCKET.IO CONNECTION HANDLER
+// =====================================================
+// ✅ SOCKET.IO CONNECTION HANDLER
+// =====================================================
+// =====================================================
+// 🔹 SOCKET.IO
+// =====================================================
 io.on("connection", (socket) => {
   console.log("✅ Client connected:", socket.id);
 
   socket.on("userConnected", () => {
     try {
       const alerts = loadAlerts();
-      // Send the full alert history (no filtering)
       socket.emit("alertHistory", alerts.reverse());
       console.log(`📜 Sent ${alerts.length} alerts to client.`);
     } catch (err) {
@@ -362,26 +370,21 @@ io.on("connection", (socket) => {
   });
 });
 
-
-  socket.on("disconnect", () => console.log("❌ Client disconnected:", socket.id));
-});
-
 // =====================================================
 // 🚀 START SERVER
 // =====================================================
-httpServer
-  .listen(PORT, () => {
-    console.log("=".repeat(50));
-    console.log("🚀 CCTV Alert System Started!");
-    console.log(`✅ Server running on http://localhost:${PORT}`);
-    console.log(`✅ Socket.IO enabled`);
-    console.log("=".repeat(50));
-  })
-  .on("error", (err) => {
-    if (err.code === "EADDRINUSE") {
-      console.error(`❌ ERROR: Port ${PORT} is already in use!`);
-    } else {
-      console.error("❌ Server error:", err);
-    }
-    process.exit(1);
-  });
+httpServer.listen(PORT, () => {
+  console.log("=".repeat(50));
+  console.log("🚀 CCTV Alert System Started!");
+  console.log(`✅ Server running on http://localhost:${PORT}`);
+  console.log(`✅ Socket.IO enabled`);
+  console.log("=".repeat(50));
+}).on("error", (err) => {
+  if (err.code === "EADDRINUSE") {
+    console.error(`❌ ERROR: Port ${PORT} is already in use!`);
+  } else {
+    console.error("❌ Server error:", err);
+  }
+  process.exit(1);
+});
+
