@@ -2,48 +2,205 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Register | CCTV Monitor</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="styles.css">
+  <title>Register | CCTV Monitor</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" href="/icons/icon-192.png">
+<script>
+  // ✅ Apply saved theme before the page renders (for global dark/light mode)
+  const savedTheme = localStorage.getItem("theme") || "light";
+  document.documentElement.setAttribute("data-theme", savedTheme);
+</script>
+
+  <style>
+    /* ===== Background & Layout ===== */
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(160deg, #060b18, #0c1220);
+      color: #e0e0e0;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .card {
+      background: rgba(17, 24, 39, 0.95);
+      backdrop-filter: blur(12px);
+      border-radius: 16px;
+      box-shadow: 0 6px 25px rgba(0,0,0,0.6);
+      width: 100%;
+      max-width: 420px;
+      padding: 36px 28px;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 28px rgba(0,0,0,0.7);
+    }
+
+    h2 {
+      margin-bottom: 16px;
+      color: #00bcd4;
+      font-size: 1.8rem;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .input {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: none;
+      background: #1e293b;
+      color: white;
+      font-size: 1rem;
+      outline: none;
+      transition: 0.3s;
+    }
+
+    .input:focus {
+      background: #273549;
+      box-shadow: 0 0 0 2px #00bcd4;
+    }
+
+    .btn-primary {
+      width: 100%;
+      background: linear-gradient(90deg, #007bff, #00bcd4);
+      border: none;
+      padding: 12px 0;
+      border-radius: 10px;
+      color: white;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: background 0.3s ease, transform 0.2s ease;
+    }
+
+    .btn-primary:hover {
+      transform: scale(1.02);
+      background: linear-gradient(90deg, #00bcd4, #007bff);
+    }
+
+    .message {
+      font-size: 0.95rem;
+      margin-top: 12px;
+    }
+
+    .message.info { color: #60a5fa; }
+    .message.success { color: #22c55e; }
+    .message.error { color: #f87171; }
+
+    .text-center {
+      margin-top: 18px;
+      font-size: 0.95rem;
+      color: #bbb;
+    }
+
+    a {
+      color: #00bcd4;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 500px) {
+      .card {
+        margin: 0 20px;
+        padding: 28px 20px;
+      }
+    }
+  </style>
 </head>
+
 <body>
   <div class="card">
-    <h2>Register</h2>
+    <h2>🔐 Create Your Account</h2>
+    <p class="subtle" style="margin-bottom: 20px; color:#aaa;">Join the CCTV Alert System to monitor securely.</p>
+
     <form id="registerForm">
-      <input id="username"1a placeholder="Username" required>
-      <input id="email" type="email" placeholder="Email" required>
-      <input id="password" type="password" placeholder="Password" required>
-      <button type="submit" class="btn">Create Account</button>
+      <div class="form-group">
+        <input id="username" class="input" type="text" placeholder="Enter username" required autocomplete="username">
+      </div>
+      <div class="form-group">
+        <input id="password" class="input" type="password" placeholder="Enter password (min 6 chars)" required autocomplete="new-password">
+      </div>
+      <button type="submit" class="btn-primary">Create Account</button>
     </form>
-    <p id="msg"></p>
-    <p>Already have an account? <a href="login.html">Login</a></p>
+
+    <p id="msg" class="message"></p>
+    <p class="text-center">Already have an account? <a href="/">Login</a></p>
   </div>
 
   <script>
     const form = document.getElementById("registerForm");
     const msg = document.getElementById("msg");
-    form.addEventListener("submit", async e => {
+    const usernameInput = document.getElementById("username");
+    const passwordInput = document.getElementById("password");
+
+    form.addEventListener("submit", async (e) => {
       e.preventDefault();
+
+      msg.textContent = "";
+      msg.className = "message";
+
       const data = {
-        username: username.value.trim(),
-        email: email.value.trim(),
-        password: password.value
+        username: usernameInput.value.trim(),
+        password: passwordInput.value
       };
-      const res = await fetch("/api/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
-      });
-      const j = await res.json();
-      if (j.ok) {
-        msg.textContent = j.role === "admin"
-          ? "Registered successfully as ADMIN."
-          : "Registered successfully as user.";
-        msg.style.color = "limegreen";
-        setTimeout(() => location.href = "login.html", 1200);
-      } else {
-        msg.textContent = j.error || "Registration failed.";
-        msg.style.color = "red";
+
+      if (data.username.length < 3) {
+        msg.textContent = "⚠️ Username must be at least 3 characters.";
+        msg.className = "message error";
+        return;
+      }
+
+      if (data.password.length < 6) {
+        msg.textContent = "⚠️ Password must be at least 6 characters.";
+        msg.className = "message error";
+        return;
+      }
+
+      try {
+        msg.textContent = "⏳ Creating your account...";
+        msg.className = "message info";
+
+        const response = await fetch("/api/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+
+        if (result.ok) {
+          msg.textContent = result.role === "admin"
+            ? "✅ Registered successfully as ADMIN! Redirecting..."
+            : "✅ Registered successfully! Redirecting...";
+          msg.className = "message success";
+
+          setTimeout(() => {
+            window.location.href = "/";
+          }, 1500);
+        } else {
+          msg.textContent = result.error || "❌ Registration failed.";
+          msg.className = "message error";
+        }
+      } catch (error) {
+        console.error("Registration error:", error);
+        msg.textContent = "❌ Network error. Please try again.";
+        msg.className = "message error";
       }
     });
   </script>

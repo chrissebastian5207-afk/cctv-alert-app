@@ -2,113 +2,248 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Settings | CCTV Monitor</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-  <div class="card">
-    <h2>Settings</h2>
-
-    <!-- Appearance -->
-    <section>
-      <h3>Appearance</h3>
-      <label>
-        <input type="checkbox" id="darkToggle"> Enable Dark Mode
-      </label>
-    </section>
-
-    <!-- Notifications -->
-    <section>
-      <h3>Notifications</h3>
-      <label>
-        <input type="checkbox" id="notifToggle"> Enable Sound Alerts
-      </label>
-    </section>
-
-    <!-- Account -->
-    <section>
-      <h3>Account</h3>
-      <button id="deleteAccBtn" class="btn danger">Delete My Account</button>
-      <button id="logoutBtn" class="btn outline">Logout</button>
-    </section>
-
-    <!-- Change Password -->
-    <section>
-      <h3>Change Password</h3>
-      <form id="changeForm">
-        <input type="password" id="oldPass" placeholder="Current password" required>
-        <input type="password" id="newPass" placeholder="New password" required>
-        <button class="btn" type="submit">Update Password</button>
-      </form>
-    </section>
-
-    <!-- Legal -->
-    <section>
-      <h3>Legal & Support</h3>
-      <a href="https://yourdomain.com/privacy-policy.html" target="_blank">Privacy Policy</a><br>
-      <a href="mailto:youremail@gmail.com">Contact Developer</a>
-    </section>
-
-    <p class="version">App Version 1.0.0</p>
-  </div>
+  <title>Settings | CCTV Alert System</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" href="/icons/icon-192.png">
 
   <script>
-    // === Dark Mode ===
-    const darkToggle = document.getElementById("darkToggle");
-    const prefersDark = localStorage.getItem("darkMode") === "true";
-    document.body.classList.toggle("dark", prefersDark);
-    darkToggle.checked = prefersDark;
-    darkToggle.addEventListener("change", () => {
-      localStorage.setItem("darkMode", darkToggle.checked);
-      document.body.classList.toggle("dark", darkToggle.checked);
+    // ✅ Apply saved theme before render (global)
+    const savedTheme = localStorage.getItem("theme") || "light";
+    document.documentElement.setAttribute("data-theme", savedTheme);
+  </script>
+
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: var(--bg);
+      color: var(--text);
+      transition: background 0.3s, color 0.3s;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 1.8rem;
+    }
+
+    section {
+      margin-bottom: 40px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    label, span, h3 {
+      display: block;
+      font-weight: 500;
+    }
+
+    input[type="password"] {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0 12px;
+      border-radius: 8px;
+      border: none;
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text);
+      font-size: 1rem;
+    }
+
+    button {
+      display: block;
+      width: 100%;
+      padding: 12px 18px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-size: 1rem;
+      margin-top: 10px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      color: var(--btn-text);
+    }
+
+    .btn-danger {
+      background: linear-gradient(90deg, #b91c1c, #ef4444);
+      color: white;
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 52px;
+      height: 28px;
+      vertical-align: middle;
+    }
+
+    .switch input { display: none; }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      inset: 0;
+      background: #555;
+      transition: 0.4s;
+      border-radius: 28px;
+    }
+
+    .slider:before {
+      content: "";
+      position: absolute;
+      height: 20px;
+      width: 20px;
+      left: 4px;
+      bottom: 4px;
+      background: white;
+      transition: 0.4s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background: var(--accent);
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(24px);
+    }
+
+    a.link-btn {
+      display: block;
+      text-align: center;
+      margin-top: 12px;
+      padding: 12px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      color: var(--btn-text);
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 500;
+      transition: opacity 0.3s;
+    }
+
+    a.link-btn:hover {
+      opacity: 0.9;
+    }
+
+    .small-text {
+      color: #aaa;
+      font-size: 0.9rem;
+      text-align: center;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+
+<body>
+  <h2>⚙️ Settings</h2>
+
+  <!-- 🌙 Appearance -->
+  <section>
+    <h3>🌙 Appearance</h3>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;">
+      <span>Enable Dark Mode</span>
+      <label class="switch">
+        <input type="checkbox" id="darkModeToggle">
+        <span class="slider"></span>
+      </label>
+    </div>
+  </section>
+
+  <!-- 🔒 Change Password -->
+  <section>
+    <h3>🔒 Change Password</h3>
+    <input id="currentPassword" type="password" placeholder="Current Password" autocomplete="current-password">
+    <input id="newPassword" type="password" placeholder="New Password" autocomplete="new-password">
+    <button class="btn-primary" onclick="changePassword()">Update Password</button>
+    <p id="msg" class="small-text"></p>
+  </section>
+
+  <!-- 🗑 Delete Account -->
+  <section>
+    <h3>🗑 Delete Account</h3>
+    <button class="btn-danger" onclick="deleteAccount()">Delete My Account</button>
+  </section>
+
+  <!-- 📄 Links -->
+  <section style="border:none;">
+    <a href="/privacy" class="link-btn">📄 Privacy Policy</a>
+    <a href="/contact" class="link-btn">📧 Contact Developer</a>
+    <a href="/user" class="link-btn">⬅️ Back</a>
+  </section>
+
+  <script>
+    // ✅ Global Dark Mode (Applies to all pages)
+    const toggle = document.getElementById("darkModeToggle");
+    const currentTheme = localStorage.getItem("theme") || "light";
+    toggle.checked = currentTheme === "dark";
+    document.documentElement.setAttribute("data-theme", currentTheme);
+
+    toggle.addEventListener("change", () => {
+      const newTheme = toggle.checked ? "dark" : "light";
+      document.documentElement.setAttribute("data-theme", newTheme);
+      localStorage.setItem("theme", newTheme);
     });
 
-    // === Notifications ===
-    const notifToggle = document.getElementById("notifToggle");
-    notifToggle.checked = localStorage.getItem("alerts") === "true";
-    notifToggle.addEventListener("change", () => {
-      localStorage.setItem("alerts", notifToggle.checked);
-      alert(notifToggle.checked ? "Alerts enabled" : "Alerts disabled");
-    });
+    // ✅ Change Password
+    async function changePassword() {
+      const msg = document.getElementById("msg");
+      const currentPassword = document.getElementById("currentPassword").value.trim();
+      const newPassword = document.getElementById("newPassword").value.trim();
+      msg.textContent = "";
 
-    // === Delete Account ===
-    document.getElementById("deleteAccBtn").addEventListener("click", async () => {
-      if (!confirm("Permanently delete your account?")) return;
-      const res = await fetch("/api/delete-account", { method: "DELETE" });
-      const j = await res.json();
-      if (j.ok) {
-        alert("Account deleted successfully.");
-        localStorage.clear();
-        location.href = "register.html";
-      } else alert("Error deleting account.");
-    });
-
-    // === Logout ===
-    document.getElementById("logoutBtn").addEventListener("click", async () => {
-      await fetch("/api/logout", { method: "POST" });
-      alert("Logged out.");
-      location.href = "login.html";
-    });
-
-    // === Change Password ===
-    document.getElementById("changeForm").addEventListener("submit", async e => {
-      e.preventDefault();
-      const oldPass = document.getElementById("oldPass").value.trim();
-      const newPass = document.getElementById("newPass").value.trim();
-      const res = await fetch("/api/change-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ oldPass, newPass })
-      });
-      const data = await res.json();
-      if (data.ok) {
-        alert("Password updated successfully.");
-        document.getElementById("changeForm").reset();
-      } else {
-        alert(data.error || "Failed to update password.");
+      if (!currentPassword || !newPassword) {
+        msg.textContent = "Please fill in all fields.";
+        msg.style.color = "#f87171";
+        return;
       }
-    });
+
+      try {
+        const response = await fetch("/api/change-password", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ currentPassword, newPassword }),
+        });
+        const result = await response.json();
+        if (result.ok) {
+          msg.textContent = "✅ Password updated successfully!";
+          msg.style.color = "#22c55e";
+          document.getElementById("currentPassword").value = "";
+          document.getElementById("newPassword").value = "";
+        } else {
+          msg.textContent = "❌ " + (result.error || "Error updating password.");
+          msg.style.color = "#f87171";
+        }
+      } catch {
+        msg.textContent = "❌ Network error.";
+        msg.style.color = "#f87171";
+      }
+    }
+
+    // ✅ Delete Account
+    async function deleteAccount() {
+      if (!confirm("Are you sure you want to permanently delete your account?")) return;
+      try {
+        const res = await fetch("/api/delete-account", {
+          method: "DELETE",
+          credentials: "include",
+        });
+        const result = await res.json();
+        if (result.ok) {
+          alert("🗑 Account deleted. Logging out...");
+          window.location.href = "/";
+        } else {
+          alert("❌ " + (result.message || "Failed to delete account"));
+        }
+      } catch (err) {
+        console.error("Delete error:", err);
+        alert("❌ Network error");
+      }
+    }
   </script>
 </body>
 </html>

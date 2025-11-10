@@ -1,0 +1,23 @@
+{
+  "name": "CCTV Monitor",
+  "short_name": "CCTV",
+  "start_url": "/user",
+  "display": "standalone",
+  "background_color": "#0e0e0e",
+  "theme_color": "#1f1f1f",
+  "description": "AI-powered CCTV monitoring and alert system with live notifications.",
+  "icons": [
+    {
+      "src": "/static/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/static/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "gcm_sender_id": "103953800507"
+}

@@ -1,49 +1,305 @@
-{% extends "layout.html" %}
-{% block content %}
-<script>
-  if (!localStorage.getItem('cctv_logged_in')) {
-    window.location.href = '/';
-  }
-</script>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>User Dashboard | CCTV Alert System</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" href="/icons/icon-192.png">
 
-<div class="row">
-  <div class="col-12">
-    <div class="card bg-panel border-2 mb-3">
-      <div class="card-body d-flex justify-content-between align-items-center">
-        <h4 class="text-warning mb-0">Live Alerts</h4>
-        <div class="d-flex gap-2">
-          <button id="enableSoundUser" class="btn btn-sm btn-outline-light">Enable Sound 🔊</button>
-          <a class="btn btn-sm btn-secondary" href="/logout" onclick="localStorage.removeItem('cctv_logged_in');">Logout</a>
-        </div>
+  <!-- ✅ Verify role before rendering -->
+  <script>
+    document.documentElement.style.visibility = "hidden"; // hide until verified
+
+    async function verifyUser() {
+      try {
+        const savedRole = localStorage.getItem("role");
+
+        // Quick check for faster reload
+        if (savedRole === "user") {
+          document.documentElement.style.visibility = "visible";
+          return;
+        }
+
+        const res = await fetch("/api/me", { credentials: "include" });
+        const data = await res.json();
+
+        if (data.ok) {
+          if (data.user.role === "admin") {
+            localStorage.setItem("role", "admin");
+            window.location.href = "/admin";
+          } else {
+            localStorage.setItem("role", "user");
+            document.documentElement.style.visibility = "visible";
+          }
+        } else {
+          localStorage.removeItem("role");
+          window.location.href = "/";
+        }
+      } catch (err) {
+        console.error("Verification failed:", err);
+        localStorage.removeItem("role");
+        window.location.href = "/";
+      }
+    }
+
+    verifyUser();
+  </script>
+
+  <!-- Global theme -->
+  <script>
+    const savedTheme = localStorage.getItem("theme") || "light";
+    document.documentElement.setAttribute("data-theme", savedTheme);
+  </script>
+
+  <style>
+    body {
+      background: linear-gradient(160deg, #04070f, #0c1220);
+      color: #e0e0e0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      overflow-x: hidden;
+    }
+    #username-display {
+      font-weight: 600;
+      color: var(--accent, #00bcd4);
+      margin-right: 12px;
+    }
+    .toast {
+      position: fixed;
+      bottom: 25px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #222;
+      color: #fff;
+      padding: 10px 18px;
+      border-radius: 20px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      animation: fadeInOut 3s;
+      z-index: 99999;
+      font-size: 14px;
+    }
+    @keyframes fadeInOut { 0%,100%{opacity:0} 10%,90%{opacity:1} }
+  </style>
+</head>
+
+<body>
+  <!-- Appbar -->
+  <header class="appbar">
+    <div class="appbar-inner">
+      <div class="brand">
+        <img src="/icons/icon-192.png" width="40" height="40" style="margin-right:10px">
+        <div>CCTV Alert System</div>
       </div>
+      <nav class="row">
+        <a class="link" href="/user">Live</a>
+        <a class="link" href="/settings">Settings</a>
+      </nav>
+      <div class="spacer"></div>
+      <div id="username-display"></div>
+      <div class="small" id="connection-status">
+        <span class="status-dot is-offline"></span>Disconnected
+      </div>
+      <button onclick="logout()" class="btn btn-secondary">Logout</button>
     </div>
+  </header>
 
-    <div class="card bg-panel border-2">
-      <div class="card-body">
-        <div id="recent-list" class="list-group">
-          {% for a in alerts %}
-            <div class="list-group-item d-flex justify-content-between align-items-start">
-              <div class="ms-2 me-auto">
-                <div class="fw-bold">{{ a.title }}</div>
-                <div class="small text-muted">{{ a.message }}</div>
-              </div>
-              <span class="badge bg-secondary rounded-pill">{{ a.timestamp[:19].replace('T',' ') if a.timestamp else '' }}</span>
+  <div class="container">
+    <div class="card">
+      <div class="row" style="align-items:center">
+        <h2 style="margin:0">
+          🚨 Live Alerts
+          <span id="alert-count" class="badge"
+            style="margin-left:8px;background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#081018">0</span>
+        </h2>
+        <div class="spacer"></div>
+        <button id="sound-toggle" class="btn btn-secondary" title="Toggle sound">🔇</button>
+      </div>
+      <div class="hr"></div>
+
+      <div class="collapsible open" id="feed">
+        <div class="collapsible-head" onclick="toggleCollapsible('feed')">
+          <div class="row"><div class="small subtle">Live Feed</div></div>
+          <button class="btn btn-ghost" aria-label="Toggle feed">▾</button>
+        </div>
+        <div class="collapsible-body">
+          <div class="controls" style="margin-bottom:10px">
+            <input id="filter-key" class="input" type="search" placeholder="Search…" aria-label="Search alerts">
+            <select id="filter-priority" class="select" aria-label="Priority">
+              <option value="">All</option>
+              <option value="critical">Critical</option>
+              <option value="high">High</option>
+              <option value="medium">Medium</option>
+              <option value="low">Low</option>
+            </select>
+            <button class="btn btn-secondary" onclick="applyFilters()">Apply</button>
+            <button class="btn btn-ghost" onclick="resetFilters()">Reset</button>
+          </div>
+          <div id="alerts-list">
+            <div class="center subtle">
+              🔭 No alerts yet<br><small>You'll be notified when alerts are sent</small>
             </div>
-          {% else %}
-            <div class="list-group-item">No alerts yet.</div>
-          {% endfor %}
+          </div>
         </div>
       </div>
     </div>
-
   </div>
-</div>
 
-<script>
-document.getElementById('enableSoundUser').addEventListener('click', () => {
-  const a = new Audio('/static/sounds/alert.wav');
-  a.volume = 1.0;
-  a.play().then(()=>{ alert('Sound enabled'); }).catch(()=>{ alert('Tap anywhere then try again'); });
+  <!-- Socket -->
+  <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
+  <script src="/js/socket.js"></script>
+
+  <script>
+    const usernameDisplay = document.getElementById("username-display");
+    const soundToggle = document.getElementById("sound-toggle");
+    let soundEnabled = false;
+    let ALL_ALERTS = [];
+
+    // 🔌 Socket events
+    socket.on("connect", async () => {
+      document.getElementById("connection-status").innerHTML =
+        '<span class="status-dot is-online"></span>Connected';
+      try {
+        const res = await fetch("/api/me", { credentials: "include" });
+        const data = await res.json();
+        if (data.ok) usernameDisplay.textContent = `👋 ${data.user.username}`;
+      } catch (err) { console.error("Error fetching user:", err); }
+    });
+
+    socket.on("disconnect", () => {
+      document.getElementById("connection-status").innerHTML =
+        '<span class="status-dot is-offline"></span>Disconnected';
+    });
+
+    // 🧠 Load full history instead of replacing
+socket.on("alertHistory", (alerts) => {
+  if (!alerts?.length) {
+    console.log("No alerts received from server.");
+    return;
+  }
+
+  // Merge and deduplicate alerts
+  const seen = new Set();
+  ALL_ALERTS = [...alerts, ...ALL_ALERTS].filter(a => {
+    if (seen.has(a.id)) return false;
+    seen.add(a.id);
+    return true;
+  });
+
+  renderAlerts(ALL_ALERTS);
+  updateAlertCount();
+});
+
+
+
+    socket.on("newAlert", (alert) => {
+      ALL_ALERTS.unshift(alert);
+      displayAlert(alert);
+      playAlertSound();
+      updateAlertCount();
+    });
+
+    // 🔒 Logout
+    async function logout() {
+      localStorage.removeItem("role");
+      await fetch("/api/logout", { method: "POST", credentials: "include" });
+      window.location.href = "/";
+    }
+
+    // 🔊 Sound toggle
+    soundToggle.addEventListener("click", () => {
+      soundEnabled = !soundEnabled;
+      soundToggle.textContent = soundEnabled ? "🔊" : "🔇";
+      soundToggle.className = soundEnabled ? "btn btn-primary" : "btn btn-secondary";
+      if (soundEnabled) playAlertSound();
+    });
+
+    function playAlertSound() {
+      if (!soundEnabled) return;
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.frequency.value = 800;
+        gain.gain.setValueAtTime(0.3, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+        osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.5);
+      } catch (err) { console.error(err); }
+    }
+
+    // 🧾 Render alerts
+    function renderAlerts(list) {
+      const listEl = document.getElementById("alerts-list");
+      if (!list || !list.length) {
+        listEl.innerHTML = `<div class="center subtle">
+          🔭 No alerts yet<br><small>You'll be notified when alerts are sent</small></div>`;
+        return;
+      }
+      listEl.innerHTML = "";
+      list.forEach(displayAlert);
+    }
+
+    function displayAlert(a) {
+      const list = document.getElementById("alerts-list");
+      const card = document.createElement("div");
+      const pr = (a.priority || "medium").toLowerCase();
+      card.className = `alert-card priority-${pr}`;
+      card.innerHTML = `
+        <div class="alert-header">
+          <div>🚨 ${a.title}</div>
+          <span class="badge badge-${pr}">${pr.toUpperCase()}</span>
+        </div>
+        <p>${a.message}</p>
+        <small>📅 ${new Date(a.timestamp).toLocaleString()}</small>`;
+      list.insertBefore(card, list.firstChild);
+    }
+
+    // 🔍 Filters
+    function applyFilters() {
+      const key = (document.getElementById("filter-key").value || "").toLowerCase();
+      const pr = (document.getElementById("filter-priority").value || "").toLowerCase();
+      document.querySelectorAll("#alerts-list .alert-card").forEach(card => {
+        const text = card.textContent.toLowerCase();
+        const badge = (card.querySelector("[class*='badge-']")?.className || "").toLowerCase();
+        const matchKey = key ? text.includes(key) : true;
+        const matchPr = pr ? badge.includes("badge-" + pr) : true;
+        card.style.display = (matchKey && matchPr) ? "" : "none";
+      });
+      updateAlertCount();
+    }
+
+    function resetFilters() {
+      document.getElementById("filter-key").value = "";
+      document.getElementById("filter-priority").value = "";
+      document.querySelectorAll("#alerts-list .alert-card").forEach(c => c.style.display = "");
+      updateAlertCount();
+    }
+
+    function toggleCollapsible(id) {
+      document.getElementById(id).classList.toggle("open");
+    }
+
+    function updateAlertCount() {
+  const count = document.querySelectorAll("#alerts-list .alert-card:not([style*='display: none'])").length;
+  document.getElementById("alert-count").textContent = count;
+}
+
+// ✅ Step 3 – load alerts on first page open
+window.addEventListener("DOMContentLoaded", async () => {
+  try {
+    const res = await fetch("/api/alerts", { credentials: "include" });
+    const data = await res.json();
+    if (data.ok && data.alerts?.length) {
+      ALL_ALERTS = data.alerts;
+      renderAlerts(ALL_ALERTS);
+      updateAlertCount();
+    }
+  } catch (err) {
+    console.error("Failed to load initial alerts:", err);
+  }
 });
 </script>
-{% endblock %}
+</body>
+</html>

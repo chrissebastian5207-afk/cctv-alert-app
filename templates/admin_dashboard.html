@@ -1,144 +1,344 @@
-{% extends "layout.html" %}
-{% block content %}
-<script>
-  if (!localStorage.getItem('cctv_logged_in')) {
-    window.location.href = '/';
-  }
-</script>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin Dashboard | CCTV Alert System</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" href="/icons/icon-192.png">
 
-<div class="row g-3">
-  <div class="col-12 col-xl-5">
-    <div class="card bg-panel border-2">
-      <div class="card-body">
-        <h4 class="text-warning mb-2">Quick Alerts</h4>
+  <!-- 🚀 Verify admin before showing content -->
+  <script>
+    document.documentElement.style.visibility = "hidden"; // hide page until verified
 
-        <div class="row g-2 mb-3">
-          <!-- Buttons set B -->
-          <div class="col-6"><button class="btn btn-neon w-100 quick-btn" data-title="Fire / Smoke" data-priority="High">🔥 Fire / Smoke</button></div>
-          <div class="col-6"><button class="btn btn-neon w-100 quick-btn" data-title="Emergency Response Needed" data-priority="High">🧯 Emergency</button></div>
+    async function verifyAdmin() {
+      try {
+        const savedRole = localStorage.getItem("role");
 
-          <div class="col-6"><button class="btn btn-warning w-100 quick-btn" data-title="Perimeter Breach" data-priority="High">🛑 Perimeter Breach</button></div>
-          <div class="col-6"><button class="btn btn-warning w-100 quick-btn" data-title="Door Forced Open" data-priority="High">🚪 Door Forced</button></div>
+        // If cached as admin, load instantly
+        if (savedRole === "admin") {
+          document.documentElement.style.visibility = "visible";
+          return;
+        }
 
-          <div class="col-6"><button class="btn btn-outline-warning w-100 quick-btn" data-title="Unknown Person Detected" data-priority="High">👤 Unknown Person</button></div>
-          <div class="col-6"><button class="btn btn-outline-warning w-100 quick-btn" data-title="Camera Tampered" data-priority="Medium">📡 Camera Tampered</button></div>
-        </div>
+        const res = await fetch("/api/me", { credentials: "include" });
+        const data = await res.json();
 
-        <h5 class="text-muted small mb-2">Manual Alert</h5>
-        <div class="mb-2">
-          <input id="manual-title" class="form-control bg-dark text-light" placeholder="Custom title" value="Security Alert">
-        </div>
-        <div class="mb-2">
-          <textarea id="manual-message" class="form-control bg-dark text-light" rows="3" placeholder="Write message...">SOP violation detected</textarea>
-        </div>
-        <div class="mb-2">
-          <select id="manual-priority" class="form-select bg-dark text-light">
-            <option value="High">High</option>
-            <option value="Medium" selected>Medium</option>
-            <option value="Low">Low</option>
-          </select>
-        </div>
-        <div class="d-flex gap-2">
-          <button id="sendManual" class="btn btn-danger flex-grow-1">Send Manual Alert</button>
-          <button id="testSound" class="btn btn-outline-light">Test Sound</button>
-        </div>
-      </div>
-    </div>
-
-    <div class="card bg-panel border-2 mt-3">
-      <div class="card-body">
-        <h5 class="text-warning">Recent Alerts (Admin)</h5>
-        <div id="recent-list" class="list-group mt-2">
-          {% for a in alerts %}
-            <div class="list-group-item d-flex justify-content-between align-items-start">
-              <div class="ms-2 me-auto">
-                <div class="fw-bold">{{ a.title }}</div>
-                <div class="small text-muted">{{ a.message }}</div>
-              </div>
-              <span class="badge bg-secondary rounded-pill">{{ a.timestamp[:19].replace('T',' ') if a.timestamp else '' }}</span>
-            </div>
-          {% else %}
-            <div class="list-group-item">No alerts yet.</div>
-          {% endfor %}
-        </div>
-      </div>
-    </div>
-
-  </div>
-
-  <div class="col-12 col-xl-7">
-    <div class="card bg-panel border-2">
-      <div class="card-body">
-        <h5 class="text-warning">Live Preview & Tools</h5>
-        <p class="text-muted small">Connected users will receive alerts instantly.</p>
-
-        <div class="d-flex gap-2 align-items-center">
-          <button id="enableSoundAdmin" class="btn btn-sm btn-outline-light">Enable Sound 🔊</button>
-          <button id="openUser" class="btn btn-sm btn-secondary">Open User View</button>
-        </div>
-
-        <hr class="my-3">
-
-        <div class="small text-muted">
-          Tip: Use Quick Alerts for fast testing. Manual send will create a persistent record.
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<script>
-// admin client behavior
-document.querySelectorAll('.quick-btn').forEach(btn => {
-  btn.addEventListener('click', async () => {
-    const title = btn.dataset.title || 'Alert';
-    const priority = btn.dataset.priority || 'High';
-    const message = prompt(`Send "${title}" - enter message:`, `${title} detected`);
-    if (!message) return;
-    sendAlertPayload({ title, message, priority });
-  });
-});
-
-document.getElementById('sendManual').addEventListener('click', () => {
-  const title = document.getElementById('manual-title').value || 'Alert';
-  const message = document.getElementById('manual-message').value || '';
-  const priority = document.getElementById('manual-priority').value || 'Medium';
-  if (!message.trim()) { alert('Enter a message'); return; }
-  sendAlertPayload({ title, message, priority });
-});
-
-async function sendAlertPayload(payload) {
-  try {
-    const resp = await fetch('/send_alert', {
-      method: 'POST',
-      credentials: 'same-origin',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    const js = await resp.json();
-    if (js.status === 'ok') {
-      // prepend admin list instantly
-      const rlist = document.getElementById('recent-list');
-      const node = document.createElement('div');
-      node.className = 'list-group-item d-flex justify-content-between align-items-start';
-      node.innerHTML = `<div class="ms-2 me-auto"><div class="fw-bold">${js.alert.title}</div><div class="small text-muted">${js.alert.message}</div></div><span class="badge bg-secondary rounded-pill">${js.alert.timestamp.slice(0,19).replace('T',' ')}</span>`;
-      rlist.prepend(node);
-      document.getElementById('manual-message').value = '';
-    } else {
-      alert('Failed: ' + (js.message || 'unknown'));
+        if (data.ok && data.user.role === "admin") {
+          localStorage.setItem("role", "admin");
+          document.documentElement.style.visibility = "visible";
+        } else {
+          localStorage.removeItem("role");
+          window.location.href = "/user";
+        }
+      } catch (err) {
+        console.error("Admin verification failed:", err);
+        localStorage.removeItem("role");
+        window.location.href = "/";
+      }
     }
-  } catch (e) {
-    alert('Network error sending alert');
-  }
-}
 
-document.getElementById('testSound').addEventListener('click', () => {
-  const a = new Audio('/static/sounds/alert.wav'); a.volume = 1; a.play().catch(()=>alert('Sound blocked: tap enable sound first'));
-});
-document.getElementById('enableSoundAdmin').addEventListener('click', () => {
-  const a = new Audio('/static/sounds/alert.wav'); a.volume = 1; a.play().then(()=>alert('Sound enabled')).catch(()=>alert('Tap anywhere then try again'));
-});
-document.getElementById('openUser').addEventListener('click', () => window.open('/', '_blank'));
-</script>
+    verifyAdmin();
+  </script>
 
-{% endblock %}
+  <!-- Apply global theme -->
+  <script>
+    const savedTheme = localStorage.getItem("theme") || "light";
+    document.documentElement.setAttribute("data-theme", savedTheme);
+  </script>
+
+  <style>
+    body {
+      background: linear-gradient(160deg, #04070f, #0c1220);
+      color: #e0e0e0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      overflow-x: hidden;
+    }
+    #username-display {
+      font-weight: 600;
+      color: var(--accent, #00bcd4);
+      margin-right: 12px;
+    }
+    .toast {
+      position: fixed;
+      bottom: 25px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #222;
+      color: #fff;
+      padding: 10px 18px;
+      border-radius: 20px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      animation: fadeInOut 3s;
+      z-index: 99999;
+      font-size: 14px;
+    }
+    @keyframes fadeInOut {
+      0%,100%{opacity:0}
+      10%,90%{opacity:1}
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Appbar -->
+  <header class="appbar">
+    <div class="appbar-inner">
+      <div class="brand">
+        <img src="/icons/icon-192.png" width="36" height="36" style="margin-right:10px">
+        <div>CCTV Alert System</div>
+      </div>
+      <nav class="row">
+        <a class="link" href="/admin">Dashboard</a>
+        <a class="link" href="/settings">Settings</a>
+      </nav>
+      <div class="spacer"></div>
+      <div id="username-display"></div>
+      <div class="small" id="connection-status">
+        <span class="status-dot is-offline"></span>Disconnected
+      </div>
+      <button onclick="logout()" class="btn btn-secondary">Logout</button>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- Stats -->
+    <section class="grid stats" id="stats-bar">
+      <div class="stat"><div class="small">Alerts Today</div><div class="kpi" id="stat-alerts-today">—</div></div>
+      <div class="stat"><div class="small">Critical Count</div><div class="kpi" id="stat-critical">—</div></div>
+      <div class="stat"><div class="small">Last Sent</div><div class="kpi small" id="stat-last">—</div></div>
+    </section>
+
+    <!-- Send Alert -->
+    <div class="card">
+      <h2>🚨 Send Alert</h2>
+      <p class="subtle small">Choose a quick action or create a custom alert.</p>
+      <div class="alert-buttons" style="margin-top:12px">
+        <button class="alert-btn btn-fire" onclick="sendAlert('Fire', '🔥 FIRE ALERT! Evacuate immediately!', 'Critical')">🔥 FIRE ALERT</button>
+        <button class="alert-btn btn-security" onclick="sendAlert('Security Breach', '⚠️ Security breach detected. Stay alert!', 'High')">⚠️ SECURITY BREACH</button>
+        <button class="alert-btn btn-medical" onclick="sendAlert('Medical Emergency', '🚑 Medical emergency. Assistance needed!', 'Critical')">🚑 MEDICAL EMERGENCY</button>
+        <button class="alert-btn btn-intruder" onclick="sendAlert('Intruder Alert', '👁️ Intruder detected on premises!', 'High')">👁️ INTRUDER ALERT</button>
+        <button class="alert-btn btn-lockdown" onclick="sendAlert('Lockdown', '🔒 LOCKDOWN initiated. Secure all doors!', 'Critical')">🔒 LOCKDOWN</button>
+        <button class="alert-btn btn-evacuation" onclick="sendAlert('Evacuation', '🚪 EVACUATION order. Leave building now!', 'Critical')">🚪 EVACUATION</button>
+        <button class="alert-btn btn-custom" onclick="showCustomAlert()">✏️ CUSTOM ALERT</button>
+      </div>
+      <p id="alertMsg" class="message"></p>
+    </div>
+
+    <!-- Custom Alert Modal -->
+    <div id="customModal" class="hidden" style="position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:1200; display:flex; align-items:center; justify-content:center; padding:16px;">
+      <div class="card" style="width:min(520px,100%)">
+        <h2>✏️ Custom Alert</h2>
+        <form id="customAlertForm">
+          <div class="row">
+            <input id="customTitle" class="input" type="text" placeholder="Alert Title" required style="flex:1">
+          </div>
+          <div class="row" style="margin-top:8px">
+            <textarea id="customMessage" class="input" placeholder="Alert Message" rows="4" required style="flex:1; min-height:110px"></textarea>
+          </div>
+          <div class="row" style="margin-top:8px">
+            <select id="customPriority" class="select" style="flex:1">
+              <option value="Low">Low Priority</option>
+              <option value="Medium">Medium Priority</option>
+              <option value="High">High Priority</option>
+              <option value="Critical">Critical Priority</option>
+            </select>
+          </div>
+          <div class="row" style="margin-top:12px">
+            <div class="spacer"></div>
+            <button type="button" class="btn btn-ghost" onclick="closeCustomModal()">Cancel</button>
+            <button type="submit" class="btn btn-primary">Send Alert</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Alert History -->
+    <section class="card">
+      <div class="collapsible open" id="history-wrap">
+        <div class="collapsible-head" onclick="toggleCollapsible('history-wrap')">
+          <div class="row">
+            <h2 style="margin:0">📋 Alert History</h2>
+            <span class="subtle small">Show / Hide</span>
+          </div>
+          <button class="btn btn-ghost" aria-label="Toggle history">▾</button>
+        </div>
+        <div class="collapsible-body">
+          <div class="controls" style="margin-bottom:10px">
+            <input id="filter-key" class="input" type="search" placeholder="Search text..." aria-label="Search alerts">
+            <input id="filter-from-date" class="input" type="date">
+            <input id="filter-to-date" class="input" type="date">
+            <select id="filter-priority" class="select">
+              <option value="">All Priorities</option>
+              <option value="critical">Critical</option>
+              <option value="high">High</option>
+              <option value="medium">Medium</option>
+              <option value="low">Low</option>
+            </select>
+            <button class="btn btn-secondary" onclick="applyFilters()">Apply</button>
+            <button class="btn btn-ghost" onclick="resetFilters()">Reset</button>
+          </div>
+          <div id="alerts-list"><p class="subtle">Loading alerts...</p></div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
+  <script src="/js/socket.js"></script>
+
+  <script>
+    const usernameDisplay = document.getElementById('username-display');
+    let ALL_ALERTS = [];
+
+    // 🔌 Socket events
+    socket.on('connect', async () => {
+      document.getElementById('connection-status').innerHTML =
+        '<span class="status-dot is-online"></span>Connected';
+      try {
+        const res = await fetch('/api/me', { credentials: 'include' });
+        const data = await res.json();
+        if (data.ok) usernameDisplay.textContent = `👋 ${data.user.username}`;
+      } catch (err) { console.error(err); }
+    });
+
+    socket.on('disconnect', () => {
+      document.getElementById('connection-status').innerHTML =
+        '<span class="status-dot is-offline"></span>Disconnected';
+    });
+
+    // 🔒 Logout
+    async function logout() {
+      localStorage.removeItem("role");
+      await fetch('/api/logout', { method: 'POST', credentials: 'include' });
+      window.location.href = '/';
+    }
+
+    // 🚨 Send alert
+    async function sendAlert(title, message, priority) {
+      const alertMsg = document.getElementById('alertMsg');
+      try {
+        alertMsg.textContent = 'Sending alert...';
+        alertMsg.className = 'message info';
+        const res = await fetch('/api/send_alert', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ title, message, priority })
+        });
+        const result = await res.json();
+        if (result.status === 'ok') {
+          alertMsg.textContent = '✅ Alert sent!';
+          alertMsg.className = 'message success';
+          loadAlerts();
+          setTimeout(() => alertMsg.textContent = '', 3000);
+        } else {
+          alertMsg.textContent = result.message || '❌ Failed to send alert';
+          alertMsg.className = 'message error';
+        }
+      } catch {
+        alertMsg.textContent = 'Network error.';
+        alertMsg.className = 'message error';
+      }
+    }
+
+    // Modal
+    function showCustomAlert(){ document.getElementById('customModal').classList.remove('hidden'); }
+    function closeCustomModal(){ document.getElementById('customModal').classList.add('hidden'); document.getElementById('customAlertForm').reset(); }
+    document.getElementById('customAlertForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const title = customTitle.value.trim();
+      const message = customMessage.value.trim();
+      const priority = customPriority.value;
+      await sendAlert(title, message, priority);
+      closeCustomModal();
+    });
+
+    // Alerts
+    async function loadAlerts() {
+      try {
+        const res = await fetch('/api/alerts', { credentials: 'include' });
+        const data = await res.json();
+        if (data.ok && data.alerts.length) {
+          ALL_ALERTS = data.alerts;
+          renderAlerts(ALL_ALERTS);
+          updateStats(ALL_ALERTS);
+        } else {
+          document.getElementById('alerts-list').innerHTML = '<p class="subtle">No alerts yet.</p>';
+          updateStats([]);
+        }
+      } catch {
+        document.getElementById('alerts-list').innerHTML = '<p class="subtle">Error loading alerts.</p>';
+      }
+    }
+
+    function renderAlerts(list){
+      const alertsList = document.getElementById('alerts-list');
+      if (!list || !list.length){
+        alertsList.innerHTML = '<p class="subtle">No alerts yet.</p>';
+        return;
+      }
+      alertsList.innerHTML = '';
+      list.forEach(alert => {
+        const date = new Date(alert.timestamp);
+        const pr = (alert.priority||'medium').toLowerCase();
+        const card = document.createElement('div');
+        card.className = `alert-card priority-${pr}`;
+        card.innerHTML = `
+          <div class="alert-header">
+            <strong>${alert.title}</strong>
+            <span class="badge badge-${pr}">${(alert.priority||'MEDIUM').toUpperCase()}</span>
+          </div>
+          <p class="small">${alert.message}</p>
+          <small class="subtle">📅 ${date.toLocaleString()}</small>
+        `;
+        alertsList.appendChild(card);
+      });
+    }
+
+    function updateStats(list){
+      const today = new Date(); today.setHours(0,0,0,0);
+      const todayCount = list.filter(a=> new Date(a.timestamp)>=today).length;
+      const crit = list.filter(a=> (a.priority||'').toLowerCase()==='critical').length;
+      const last = list[0] ? new Date(list[0].timestamp).toLocaleString() : '—';
+      document.getElementById('stat-alerts-today').textContent = todayCount;
+      document.getElementById('stat-critical').textContent = crit;
+      document.getElementById('stat-last').textContent = last;
+    }
+
+    function applyFilters(){
+      const key = (document.getElementById('filter-key').value || '').toLowerCase();
+      const prio = (document.getElementById('filter-priority').value || '').toLowerCase();
+      const fd = document.getElementById('filter-from-date').value;
+      const td = document.getElementById('filter-to-date').value;
+      const fromDT = fd ? new Date(fd + 'T00:00').getTime() : null;
+      const toDT = td ? new Date(td + 'T23:59').getTime() : null;
+      const filtered = ALL_ALERTS.filter(a => {
+        const text = ((a.title||'') + ' ' + (a.message||'')).toLowerCase();
+        const matchText = key ? text.includes(key) : true;
+        const matchPrio = prio ? (a.priority||'').toLowerCase() === prio : true;
+        const t = new Date(a.timestamp).getTime();
+        const matchRange = (!fromDT || t >= fromDT) && (!toDT || t <= toDT);
+        return matchText && matchPrio && matchRange;
+      });
+      renderAlerts(filtered);
+      updateStats(filtered);
+    }
+
+    function resetFilters(){
+      document.getElementById('filter-key').value='';
+      document.getElementById('filter-priority').value='';
+      document.getElementById('filter-from-date').value='';
+      document.getElementById('filter-to-date').value='';
+      renderAlerts(ALL_ALERTS);
+      updateStats(ALL_ALERTS);
+    }
+
+    function toggleCollapsible(id){ document.getElementById(id).classList.toggle('open'); }
+
+    window.addEventListener('DOMContentLoaded', loadAlerts);
+  </script>
+</body>
+</html>
