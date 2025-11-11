@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
   <title>Admin Dashboard | CCTV Alert System</title>
 
   <!-- ✅ Static Assets -->
@@ -61,6 +61,75 @@
       background: #222; color: #fff; padding: 10px 18px; border-radius: 20px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.3); animation: fadeInOut 3s; z-index: 99999; font-size: 14px; }
     @keyframes fadeInOut { 0%,100%{opacity:0} 10%,90%{opacity:1} }
+
+    /* ✅ MOBILE RESPONSIVE STYLES */
+    html, body { overflow-x: hidden; width: 100%; }
+
+    .appbar-inner { flex-wrap: wrap; gap: 10px; }
+    .brand { font-size: 14px; }
+    .brand img { width: 32px !important; height: 32px !important; }
+    .appbar-inner nav.row { order: 3; width: 100%; }
+    .appbar-inner .spacer { display: none; }
+    .appbar-inner #username-display,
+    .appbar-inner #connection-status,
+    .appbar-inner .btn { order: 4; }
+
+    .container { margin-top: 120px; padding: 12px; }
+
+    @media (max-width: 700px) {
+      .stats { grid-template-columns: 1fr !important; }
+    }
+
+    .alert-buttons { grid-template-columns: 1fr !important; gap: 10px; }
+    .alert-btn { padding: 16px 12px; font-size: 13px; min-height: 48px; white-space: normal; word-wrap: break-word; }
+
+    .controls { display: grid; grid-template-columns: 1fr; gap: 10px; }
+    .input, .select { width: 100%; min-height: 44px; font-size: 16px; padding: 12px; }
+    .btn, button { min-height: 44px; padding: 10px 16px; font-size: 14px; }
+
+    .alert-card { padding: 12px; margin: 8px 0; }
+    .alert-header { flex-wrap: wrap; gap: 8px; }
+    .alert-header > div:first-child { flex: 1; min-width: 0; word-break: break-word; }
+    .badge { flex-shrink: 0; white-space: nowrap; }
+
+    .card { padding: 16px; margin-bottom: 16px; }
+    .card h2 { font-size: 18px; margin-bottom: 12px; }
+
+    #customModal { padding: 16px; }
+    #customModal .card { width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; }
+
+    .collapsible-head { padding: 12px; }
+    .collapsible-body { padding: 12px; }
+
+    @media (min-width: 480px) {
+      .alert-buttons { grid-template-columns: repeat(2, 1fr) !important; }
+      .controls { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (min-width: 768px) {
+      .appbar-inner { flex-wrap: nowrap; }
+      .appbar-inner nav.row { order: initial; width: auto; }
+      .appbar-inner .spacer { display: block; }
+      .appbar-inner #username-display,
+      .appbar-inner #connection-status,
+      .appbar-inner .btn { order: initial; }
+      .brand { font-size: 16px; }
+      .brand img { width: 28px !important; height: 28px !important; }
+      .container { margin-top: 90px; padding: 0 16px; }
+      .card { padding: 18px; }
+      .card h2 { font-size: 20px; }
+      .alert-buttons { grid-template-columns: repeat(3, 1fr) !important; }
+    }
+
+    @media (min-width: 1024px) {
+      .alert-buttons { grid-template-columns: repeat(4, 1fr) !important; }
+      .controls { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+    }
+
+    @media (hover: none) and (pointer: coarse) {
+      .btn, .alert-btn, button { min-height: 48px; min-width: 48px; }
+      .input, .select { min-height: 48px; }
+    }
   </style>
 </head>
 
@@ -69,7 +138,7 @@
   <header class="appbar">
     <div class="appbar-inner">
       <div class="brand">
-        <img src="/static/icons/icon-192.png" width="36" height="36" alt="App Icon" style="margin-right:10px">
+        <img src="/static/icons/icon-192.png" alt="App Icon">
         <div>CCTV Alert System</div>
       </div>
       <nav class="row">
@@ -110,8 +179,8 @@
     </div>
 
     <!-- Custom Alert Modal -->
-    <div id="customModal" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1200;display:flex;align-items:center;justify-content:center;padding:16px;">
-      <div class="card" style="width:min(520px,100%)">
+    <div id="customModal" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1200;display:flex;align-items:center;justify-content:center;">
+      <div class="card">
         <h2>✏️ Custom Alert</h2>
         <form id="customAlertForm">
           <div class="row"><input id="customTitle" class="input" type="text" placeholder="Alert Title" required></div>
@@ -124,8 +193,7 @@
               <option value="Critical">Critical Priority</option>
             </select>
           </div>
-          <div class="row" style="margin-top:12px">
-            <div class="spacer"></div>
+          <div class="row" style="margin-top:12px; justify-content: flex-end;">
             <button type="button" class="btn btn-ghost" onclick="closeCustomModal()">Cancel</button>
             <button type="submit" class="btn btn-primary">Send Alert</button>
           </div>
@@ -161,10 +229,10 @@
     </section>
   </div>
 
-  <!-- ✅ Single socket import -->
+  <!-- ✅ Socket.IO -->
   <script src="/static/js/socket.js"></script>
 
-  <!-- ✅ Inline Logic -->
+  <!-- ✅ Dashboard Logic -->
   <script>
     const usernameDisplay = document.getElementById('username-display');
     let ALL_ALERTS = [];
