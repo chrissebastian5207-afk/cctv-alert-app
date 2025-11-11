@@ -95,9 +95,11 @@ app.get("/manifest.json", (req, res) => {
   res.sendFile(path.join(__dirname, "manifest.json"));
 });
 
+// ✅ Serve Firebase Messaging Service Worker from root
 app.get("/firebase-messaging-sw.js", (req, res) => {
-  res.sendFile(path.join(__dirname, "static/js/firebase-messaging-sw.js"));
+  res.sendFile(path.join(__dirname, "firebase-messaging-sw.js"));
 });
+
 
 app.get("/static/js/firebase-config.js", (req, res) => {
   res.sendFile(path.join(__dirname, "static/js/firebase-config.js"));
