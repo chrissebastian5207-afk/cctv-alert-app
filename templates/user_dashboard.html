@@ -54,95 +54,6 @@
     const savedTheme = localStorage.getItem("theme") || "light";
     document.documentElement.setAttribute("data-theme", savedTheme);
   </script>
-
-  <style>
-    body {
-      background: linear-gradient(160deg, #04070f, #0c1220);
-      color: #e0e0e0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      margin: 0;
-      overflow-x: hidden;
-    }
-
-    #username-display {
-      font-weight: 600;
-      color: var(--accent, #00bcd4);
-      margin-right: 12px;
-    }
-
-    .toast {
-      position: fixed;
-      bottom: 25px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #222;
-      color: #fff;
-      padding: 10px 18px;
-      border-radius: 20px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-      animation: fadeInOut 3s;
-      z-index: 99999;
-      font-size: 14px;
-    }
-
-    @keyframes fadeInOut {
-      0%,100% { opacity:0 }
-      10%,90% { opacity:1 }
-    }
-
-    /* ✅ MOBILE RESPONSIVE STYLES */
-    html, body { overflow-x: hidden; width: 100%; }
-
-    .appbar-inner { flex-wrap: wrap; gap: 10px; }
-    .brand { font-size: 14px; }
-    .brand img { width: 32px !important; height: 32px !important; }
-    .appbar-inner nav.row { order: 3; width: 100%; }
-    .appbar-inner .spacer { display: none; }
-    .appbar-inner #username-display,
-    .appbar-inner #connection-status,
-    .appbar-inner .btn { order: 4; }
-
-    .container { margin-top: 120px; padding: 12px; }
-
-    .controls { display: grid; grid-template-columns: 1fr; gap: 10px; }
-    .input, .select { width: 100%; min-height: 44px; font-size: 16px; padding: 12px; }
-    .btn, button { min-height: 44px; padding: 10px 16px; font-size: 14px; }
-
-    .alert-card { padding: 12px; margin: 8px 0; }
-    .alert-header { flex-wrap: wrap; gap: 8px; }
-    .alert-header > div:first-child { flex: 1; min-width: 0; word-break: break-word; }
-    .badge { flex-shrink: 0; white-space: nowrap; }
-
-    .card { padding: 16px; margin-bottom: 16px; }
-    .card h2 { font-size: 18px; margin-bottom: 12px; }
-
-    .collapsible-head { padding: 12px; }
-    .collapsible-body { padding: 12px; }
-
-    @media (min-width: 480px) {
-      .controls { grid-template-columns: repeat(2, 1fr); }
-    }
-
-    @media (min-width: 768px) {
-      .appbar-inner { flex-wrap: nowrap; }
-      .appbar-inner nav.row { order: initial; width: auto; }
-      .appbar-inner .spacer { display: block; }
-      .appbar-inner #username-display,
-      .appbar-inner #connection-status,
-      .appbar-inner .btn { order: initial; }
-      .brand { font-size: 16px; }
-      .brand img { width: 40px !important; height: 40px !important; }
-      .container { margin-top: 90px; padding: 0 16px; }
-      .card { padding: 18px; }
-      .card h2 { font-size: 20px; }
-      .controls { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
-    }
-
-    @media (hover: none) and (pointer: coarse) {
-      .btn, button { min-height: 48px; min-width: 48px; }
-      .input, .select { min-height: 48px; }
-    }
-  </style>
 </head>
 
 <body>
@@ -150,13 +61,20 @@
   <header class="appbar">
     <div class="appbar-inner">
       <div class="brand">
-        <img src="/static/icons/icon-192.png" alt="App Icon">
-        <div>CCTV Alert System</div>
+        <div class="row" style="align-items:center; gap:10px;">
+          <img src="/static/icons/icon-192.png" alt="App Icon" width="40" height="40">
+          <div>CCTV Alert System</div>
+        </div>
+        <!-- ✅ Hamburger -->
+        <div class="menu-toggle" onclick="toggleMenu()">☰</div>
       </div>
-      <nav class="row">
+
+      <nav class="row" id="mobileMenu">
         <a class="link" href="/user">Live</a>
         <a class="link" href="/settings">Settings</a>
+        <a class="link" href="/" onclick="logout()">Logout</a>
       </nav>
+
       <div class="spacer"></div>
       <div id="username-display"></div>
       <div class="small" id="connection-status">
@@ -214,6 +132,11 @@
 
   <!-- ✅ Dashboard Logic -->
   <script>
+    // ✅ Hamburger menu toggle
+    function toggleMenu() {
+      document.getElementById("mobileMenu").classList.toggle("show");
+    }
+
     const usernameDisplay = document.getElementById("username-display");
     const soundToggle = document.getElementById("sound-toggle");
     let soundEnabled = false;

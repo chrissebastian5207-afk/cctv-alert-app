@@ -14,7 +14,7 @@
   <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
   <script type="module" src="/static/js/firebase-config.js"></script>
 
-  <!-- ✅ Verify Admin before showing -->
+  <!-- ✅ Verify Admin -->
   <script>
     document.documentElement.style.visibility = "hidden";
     async function verifyAdmin() {
@@ -47,90 +47,6 @@
     const savedTheme = localStorage.getItem("theme") || "light";
     document.documentElement.setAttribute("data-theme", savedTheme);
   </script>
-
-  <style>
-    body {
-      background: linear-gradient(160deg, #04070f, #0c1220);
-      color: #e0e0e0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      margin: 0;
-      overflow-x: hidden;
-    }
-    #username-display { font-weight: 600; color: var(--accent, #00bcd4); margin-right: 12px; }
-    .toast { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%);
-      background: #222; color: #fff; padding: 10px 18px; border-radius: 20px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.3); animation: fadeInOut 3s; z-index: 99999; font-size: 14px; }
-    @keyframes fadeInOut { 0%,100%{opacity:0} 10%,90%{opacity:1} }
-
-    /* ✅ MOBILE RESPONSIVE STYLES */
-    html, body { overflow-x: hidden; width: 100%; }
-
-    .appbar-inner { flex-wrap: wrap; gap: 10px; }
-    .brand { font-size: 14px; }
-    .brand img { width: 32px !important; height: 32px !important; }
-    .appbar-inner nav.row { order: 3; width: 100%; }
-    .appbar-inner .spacer { display: none; }
-    .appbar-inner #username-display,
-    .appbar-inner #connection-status,
-    .appbar-inner .btn { order: 4; }
-
-    .container { margin-top: 120px; padding: 12px; }
-
-    @media (max-width: 700px) {
-      .stats { grid-template-columns: 1fr !important; }
-    }
-
-    .alert-buttons { grid-template-columns: 1fr !important; gap: 10px; }
-    .alert-btn { padding: 16px 12px; font-size: 13px; min-height: 48px; white-space: normal; word-wrap: break-word; }
-
-    .controls { display: grid; grid-template-columns: 1fr; gap: 10px; }
-    .input, .select { width: 100%; min-height: 44px; font-size: 16px; padding: 12px; }
-    .btn, button { min-height: 44px; padding: 10px 16px; font-size: 14px; }
-
-    .alert-card { padding: 12px; margin: 8px 0; }
-    .alert-header { flex-wrap: wrap; gap: 8px; }
-    .alert-header > div:first-child { flex: 1; min-width: 0; word-break: break-word; }
-    .badge { flex-shrink: 0; white-space: nowrap; }
-
-    .card { padding: 16px; margin-bottom: 16px; }
-    .card h2 { font-size: 18px; margin-bottom: 12px; }
-
-    #customModal { padding: 16px; }
-    #customModal .card { width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; }
-
-    .collapsible-head { padding: 12px; }
-    .collapsible-body { padding: 12px; }
-
-    @media (min-width: 480px) {
-      .alert-buttons { grid-template-columns: repeat(2, 1fr) !important; }
-      .controls { grid-template-columns: repeat(2, 1fr); }
-    }
-
-    @media (min-width: 768px) {
-      .appbar-inner { flex-wrap: nowrap; }
-      .appbar-inner nav.row { order: initial; width: auto; }
-      .appbar-inner .spacer { display: block; }
-      .appbar-inner #username-display,
-      .appbar-inner #connection-status,
-      .appbar-inner .btn { order: initial; }
-      .brand { font-size: 16px; }
-      .brand img { width: 28px !important; height: 28px !important; }
-      .container { margin-top: 90px; padding: 0 16px; }
-      .card { padding: 18px; }
-      .card h2 { font-size: 20px; }
-      .alert-buttons { grid-template-columns: repeat(3, 1fr) !important; }
-    }
-
-    @media (min-width: 1024px) {
-      .alert-buttons { grid-template-columns: repeat(4, 1fr) !important; }
-      .controls { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
-    }
-
-    @media (hover: none) and (pointer: coarse) {
-      .btn, .alert-btn, button { min-height: 48px; min-width: 48px; }
-      .input, .select { min-height: 48px; }
-    }
-  </style>
 </head>
 
 <body>
@@ -138,13 +54,21 @@
   <header class="appbar">
     <div class="appbar-inner">
       <div class="brand">
-        <img src="/static/icons/icon-192.png" alt="App Icon">
-        <div>CCTV Alert System</div>
+        <div class="row" style="align-items:center; gap:10px;">
+          <img src="/static/icons/icon-192.png" width="40" height="40" alt="App Icon">
+          <div>CCTV Alert System</div>
+        </div>
+        <!-- ✅ Hamburger menu -->
+        <div class="menu-toggle" onclick="toggleMenu()">☰</div>
       </div>
-      <nav class="row">
+
+      <!-- ✅ Navigation (auto-hidden on mobile) -->
+      <nav class="row" id="mobileMenu">
         <a class="link" href="/admin">Dashboard</a>
         <a class="link" href="/settings">Settings</a>
+        <a class="link" href="/" onclick="logout()">Logout</a>
       </nav>
+
       <div class="spacer"></div>
       <div id="username-display"></div>
       <div class="small" id="connection-status">
@@ -154,6 +78,7 @@
     </div>
   </header>
 
+  <!-- ✅ Main Content -->
   <div class="container">
     <!-- Stats -->
     <section class="grid stats" id="stats-bar">
@@ -205,7 +130,10 @@
     <section class="card">
       <div class="collapsible open" id="history-wrap">
         <div class="collapsible-head" onclick="toggleCollapsible('history-wrap')">
-          <div class="row"><h2 style="margin:0">📋 Alert History</h2><span class="subtle small">Show / Hide</span></div>
+          <div class="row">
+            <h2 style="margin:0">📋 Alert History</h2>
+            <span class="subtle small">Show / Hide</span>
+          </div>
           <button class="btn btn-ghost" aria-label="Toggle history">▾</button>
         </div>
         <div class="collapsible-body">
@@ -234,6 +162,10 @@
 
   <!-- ✅ Dashboard Logic -->
   <script>
+    function toggleMenu() {
+      document.getElementById('mobileMenu').classList.toggle('show');
+    }
+
     const usernameDisplay = document.getElementById('username-display');
     let ALL_ALERTS = [];
 

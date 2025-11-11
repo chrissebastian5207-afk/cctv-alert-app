@@ -1,6 +1,7 @@
 /* =========================================================
    CCTV Alert System - Global Theme (Light & Dark Modes)
    Author: Chris Sebastian
+   Version: Final Responsive UI (Mobile Optimized)
    ========================================================= */
 
 /* 🌞 Light Theme (default) */
@@ -11,24 +12,24 @@
   --card-border: rgba(0,0,0,.08);
   --text: #111;
   --muted: #555;
-  --accent: #8a2be2;      /* Purple */
-  --accent-2: #00bcd4;    /* Cyan */
+  --accent: #8a2be2;
+  --accent-2: #00bcd4;
   --danger: #dc2626;
   --warn: #f59e0b;
   --ok: #16a34a;
   --shadow: 0 8px 24px rgba(0,0,0,.1);
 }
 
-/* 🌙 Dark Theme (enabled via data-theme="dark") */
+/* 🌙 Dark Theme */
 [data-theme="dark"] {
   --bg: #0b0c10;
   --bg2: #11151b;
   --card: rgba(255,255,255,.06);
-  --card-border: rgba(255,255,255,.10);
+  --card-border: rgba(255,255,255,.1);
   --text: #e9eef5;
   --muted: #9ba4b5;
-  --accent: #8a2be2;      /* Neon Purple */
-  --accent-2: #00e5ff;    /* Cyan */
+  --accent: #8a2be2;
+  --accent-2: #00e5ff;
   --danger: #ff4757;
   --warn: #ffa502;
   --ok: #00b894;
@@ -36,27 +37,32 @@
 }
 
 /* =========================================================
-   Base Styles
+   Base
    ========================================================= */
-* { box-sizing: border-box; }
-html, body { height: 100%; margin: 0; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
-body {
+html, body {
+  height: 100%;
   background:
     radial-gradient(1200px 600px at 10% -10%, rgba(138,43,226,.1), transparent 60%),
     radial-gradient(1200px 600px at 110% 110%, rgba(0,229,255,.08), transparent 60%),
     var(--bg);
   color: var(--text);
-  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
+  font-family: "Segoe UI", Roboto, system-ui, -apple-system, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   line-height: 1.45;
   transition: background 0.3s ease, color 0.3s ease;
+  overflow-x: hidden;
 }
 
 /* =========================================================
-   Layout & Containers
+   Containers & Layout
    ========================================================= */
-.container { max-width: 1200px; margin: 90px auto 32px; padding: 0 16px; }
+.container {
+  max-width: 1200px;
+  margin: 90px auto 32px;
+  padding: 0 16px;
+}
 .grid { display: grid; gap: 16px; }
 .grid-2 { grid-template-columns: 1fr 1fr; }
 @media (max-width: 900px) { .grid-2 { grid-template-columns: 1fr; } }
@@ -68,10 +74,9 @@ body {
   position: fixed;
   top: 0; left: 0; right: 0;
   z-index: 1000;
-  background: linear-gradient(180deg, rgba(10,12,18,.88), rgba(10,12,18,.72));
+  background: linear-gradient(180deg, rgba(10,12,18,.9), rgba(10,12,18,.7));
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--card-border);
-  transition: background .3s ease;
 }
 .appbar-inner {
   max-width: 1200px;
@@ -79,32 +84,59 @@ body {
   padding: 12px 16px;
   display: flex;
   align-items: center;
-  gap: 14px;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
 }
+
 .brand {
   display: flex;
   align-items: center;
   gap: 10px;
   font-weight: 700;
-  letter-spacing: .3px;
+  letter-spacing: 0.3px;
 }
 .brand .logo {
-  width: 28px; height: 28px; border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
   background: linear-gradient(135deg, var(--accent), var(--accent-2));
-  box-shadow: 0 0 18px rgba(138,43,226,.35);
+  box-shadow: 0 0 12px rgba(138,43,226,0.4);
 }
-.app-actions { margin-left: auto; display: flex; align-items: center; gap: 10px; }
-.link, .btn {
-  text-decoration: none; border: 0; cursor: pointer; font-weight: 600;
-  border-radius: 10px; padding: 10px 14px; transition: .2s ease;
-}
-.link { color: var(--text); opacity: .85; }
-.link:hover { opacity: 1; }
 
+/* Navigation Links */
+nav.row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.link, .btn {
+  text-decoration: none;
+  border: 0;
+  cursor: pointer;
+  font-weight: 600;
+  border-radius: 10px;
+  padding: 10px 14px;
+  transition: all 0.2s ease;
+}
+.link {
+  color: var(--text);
+  opacity: 0.85;
+}
+.link:hover {
+  opacity: 1;
+  background: rgba(255,255,255,0.06);
+  border-radius: 8px;
+}
+
+/* =========================================================
+   Buttons
+   ========================================================= */
 .btn-primary {
   background: linear-gradient(135deg, var(--accent), var(--accent-2));
   color: #081018;
-  box-shadow: 0 0 0 rgba(0,0,0,0);
+  box-shadow: var(--shadow);
 }
 .btn-primary:hover { transform: translateY(-1px); }
 .btn-secondary {
@@ -112,19 +144,32 @@ body {
   color: var(--text);
   border: 1px solid var(--card-border);
 }
-.btn-secondary:hover { border-color: rgba(255,255,255,.18); }
-.btn-ghost { background: transparent; color: var(--text); }
-.btn-ghost:hover { background: rgba(255,255,255,.05); }
-
-.status-dot {
-  width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 6px;
-  box-shadow: 0 0 8px rgba(0,184,148,.65);
+.btn-secondary:hover {
+  border-color: rgba(255,255,255,.18);
+  background: rgba(255,255,255,0.08);
 }
-.is-online { background: var(--ok); }
-.is-offline { background: var(--danger); box-shadow: none; }
+.btn-ghost {
+  background: transparent;
+  color: var(--text);
+}
+.btn-ghost:hover {
+  background: rgba(255,255,255,.05);
+}
 
 /* =========================================================
-   Cards & Panels
+   Status Dots
+   ========================================================= */
+.status-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 6px;
+}
+.is-online { background: var(--ok); box-shadow: 0 0 10px rgba(0,184,148,.65); }
+.is-offline { background: var(--danger); }
+
+/* =========================================================
+   Cards
    ========================================================= */
 .card {
   background: var(--card);
@@ -134,30 +179,33 @@ body {
   box-shadow: var(--shadow);
   transition: background .3s ease, color .3s ease;
 }
-.card h2 { margin: 0 0 10px; }
-.subtle { color: var(--muted); font-size: .95rem; }
-
-/* Stats */
-.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-@media (max-width: 700px) { .stats { grid-template-columns: 1fr; } }
-.stat {
-  background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
-  border: 1px solid var(--card-border);
-  border-radius: 14px; padding: 14px;
+.card h2 {
+  margin-bottom: 10px;
+  font-weight: 700;
 }
-.stat .kpi { font-size: 1.6rem; font-weight: 800; }
-.stat small { color: var(--muted); }
+.subtle { color: var(--muted); font-size: .95rem; }
 
 /* =========================================================
    Collapsibles
    ========================================================= */
-.collapsible { border-radius: 14px; overflow: hidden; border: 1px solid var(--card-border); }
-.collapsible-head {
-  display: flex; align-items: center; justify-content: space-between; gap: 10px;
-  background: rgba(255,255,255,.04);
-  padding: 14px 16px; cursor: pointer;
+.collapsible {
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid var(--card-border);
 }
-.collapsible-body { display: none; padding: 16px; }
+.collapsible-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: rgba(255,255,255,.04);
+  padding: 14px 16px;
+  cursor: pointer;
+}
+.collapsible-body {
+  display: none;
+  padding: 16px;
+}
 .collapsible.open .collapsible-body { display: block; }
 
 /* =========================================================
@@ -180,35 +228,7 @@ body {
 }
 
 /* =========================================================
-   Alert Buttons (Admin)
-   ========================================================= */
-.alert-buttons {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 12px;
-}
-.alert-btn {
-  padding: 22px 16px;
-  border-radius: 14px;
-  color: white;
-  font-weight: 800;
-  letter-spacing: .3px;
-  border: 0;
-  cursor: pointer;
-  transition: transform .15s ease, box-shadow .15s ease;
-  text-align: center;
-}
-.alert-btn:hover { transform: translateY(-2px); }
-.btn-fire { background: linear-gradient(135deg,#ff4757,#ff6348); }
-.btn-security { background: linear-gradient(135deg,#ffa502,#ff6348); }
-.btn-medical { background: linear-gradient(135deg,#ee5a6f,#f368e0); }
-.btn-intruder { background: linear-gradient(135deg,#5f27cd,#341f97); }
-.btn-lockdown { background: linear-gradient(135deg,#2d3436,#000); }
-.btn-evacuation { background: linear-gradient(135deg,#00b894,#00cec9); }
-.btn-custom { background: linear-gradient(135deg,#0984e3,#74b9ff); }
-
-/* =========================================================
-   Alerts List / Badges
+   Alerts & Badges
    ========================================================= */
 .alert-card {
   margin: 10px 0;
@@ -217,13 +237,18 @@ body {
   background: rgba(255,255,255,.04);
   border: 1px solid var(--card-border);
 }
-.alert-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.alert-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
 .badge {
   padding: 4px 10px;
   border-radius: 999px;
   font-size: .75rem;
   font-weight: 800;
-  letter-spacing: .4px;
   color: #081018;
 }
 .badge-critical { background: #ff6b6b; }
@@ -244,7 +269,7 @@ body {
 .message.info { color: var(--muted); }
 
 /* =========================================================
-   Utility
+   Utilities
    ========================================================= */
 .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 .spacer { flex: 1; }
@@ -252,3 +277,72 @@ body {
 .center { text-align: center; }
 .hidden { display: none !important; }
 .hr { border-top: 1px solid var(--card-border); margin: 12px 0; }
+
+/* =========================================================
+   📱 Mobile Responsiveness (UI Fix)
+   ========================================================= */
+@media (max-width: 768px) {
+  html, body { font-size: 15px; }
+
+  header.appbar { padding: 10px 14px; flex-direction: column; align-items: flex-start; }
+  .appbar-inner { flex-direction: column; align-items: flex-start; gap: 8px; }
+
+  .brand {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  /* Hamburger menu */
+  .menu-toggle {
+    display: inline-block;
+    cursor: pointer;
+    font-size: 24px;
+    color: var(--text);
+  }
+
+  nav.row {
+    display: none;
+    flex-direction: column;
+    width: 100%;
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  nav.row.show {
+    display: flex;
+  }
+
+  nav.row a.link {
+    display: block;
+    padding: 10px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.08);
+  }
+
+  .container {
+    width: 100%;
+    padding: 14px;
+    margin-top: 90px;
+  }
+
+  .card {
+    width: 100%;
+    margin-bottom: 15px;
+    padding: 14px;
+  }
+
+  .input, .select, .btn {
+    width: 100%;
+    font-size: 16px;
+    margin-bottom: 10px;
+  }
+
+  #alerts-list { display: flex; flex-direction: column; gap: 10px; }
+  .alert-card { width: 100%; padding: 14px; word-wrap: break-word; }
+  .alert-header { flex-direction: column; align-items: flex-start; }
+
+  #connection-status { margin-top: 5px; font-size: 13px; }
+
+  .toast { width: 90%; font-size: 14px; bottom: 15px; }
+}
