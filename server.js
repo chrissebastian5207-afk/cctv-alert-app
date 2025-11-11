@@ -29,7 +29,18 @@ console.log("🧭 Current directory:", __dirname);
 const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
-  cors: { origin: "*", methods: ["GET", "POST"] },
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"]
+  },
+  // ✅ STABILITY SETTINGS - Prevents transport close disconnections
+  pingTimeout: 60000,        // 60 seconds before considering connection dead
+  pingInterval: 25000,       // Send ping every 25 seconds
+  upgradeTimeout: 30000,     // Time to wait for transport upgrade
+  transports: ['websocket', 'polling'], // Try WebSocket first, fallback to polling
+  allowUpgrades: true,       // Allow upgrading from polling to websocket
+  perMessageDeflate: false,  // Disable compression for stability
+  httpCompression: false
 });
 
 // =====================================================
@@ -99,7 +110,6 @@ app.get("/manifest.json", (req, res) => {
 app.get("/firebase-messaging-sw.js", (req, res) => {
   res.sendFile(path.join(__dirname, "firebase-messaging-sw.js"));
 });
-
 
 app.get("/static/js/firebase-config.js", (req, res) => {
   res.sendFile(path.join(__dirname, "static/js/firebase-config.js"));
@@ -303,7 +313,10 @@ app.post("/api/send_alert", authMiddleware, async (req, res) => {
 
   alerts.push(newAlert);
   saveAlerts(alerts);
+
+  // ✅ Broadcast alert to ALL connected clients via Socket.IO
   io.emit("newAlert", newAlert);
+  console.log(`📢 Alert broadcasted to all clients:`, newAlert);
 
   await sendPushNotification(newAlert.title, newAlert.message, newAlert.priority);
   res.json({ status: "ok", alert: newAlert });
@@ -312,13 +325,6 @@ app.post("/api/send_alert", authMiddleware, async (req, res) => {
 app.get("/api/alerts", authMiddleware, (req, res) => {
   const alerts = loadAlerts();
   res.json({ ok: true, alerts: alerts.reverse() });
-});
-
-// =====================================================
-// ✅ Serve Firebase Messaging Service Worker (FCM Root Access)
-// =====================================================
-app.get("/firebase-messaging-sw.js", (req, res) => {
-  res.sendFile(path.join(__dirname, "static/js/firebase-messaging-sw.js"));
 });
 
 // =====================================================
@@ -333,24 +339,37 @@ app.get("/privacy", (req, res) => res.sendFile(path.join(__dirname, "templates",
 app.get("/contact", (req, res) => res.sendFile(path.join(__dirname, "templates", "contact.html")));
 
 // =====================================================
-// 🔹 SOCKET.IO
+// 🔹 SOCKET.IO CONNECTION HANDLER
 // =====================================================
 io.on("connection", (socket) => {
   console.log("✅ Client connected:", socket.id);
 
+  // ✅ Send immediate confirmation to client
+  socket.emit('connectionConfirmed', {
+    socketId: socket.id,
+    timestamp: new Date().toISOString()
+  });
+
+  // Send alert history when user requests it
   socket.on("userConnected", () => {
     try {
       const alerts = loadAlerts();
       socket.emit("alertHistory", alerts.reverse());
-      console.log(`📜 Sent ${alerts.length} alerts to client.`);
+      console.log(`📜 Sent ${alerts.length} alerts to client ${socket.id}`);
     } catch (err) {
       console.error("❌ Error loading alerts:", err);
       socket.emit("alertHistory", []);
     }
   });
 
-  socket.on("disconnect", () => {
-    console.log("❌ Client disconnected:", socket.id);
+  // ✅ Handle disconnection with detailed reason logging
+  socket.on("disconnect", (reason) => {
+    console.log(`❌ Client disconnected: ${socket.id}, Reason: ${reason}`);
+  });
+
+  // ✅ Handle socket errors
+  socket.on("error", (error) => {
+    console.error(`⚠️ Socket error for ${socket.id}:`, error);
   });
 });
 
@@ -369,7 +388,7 @@ httpServer.listen(PORT, () => {
   console.log("=".repeat(50));
   console.log("🚀 CCTV Alert System Started!");
   console.log(`✅ Server running on http://localhost:${PORT}`);
-  console.log(`✅ Socket.IO enabled`);
+  console.log(`✅ Socket.IO enabled with stability settings`);
   console.log("=".repeat(50));
 }).on("error", (err) => {
   if (err.code === "EADDRINUSE") {
