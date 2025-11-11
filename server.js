@@ -313,6 +313,13 @@ app.get("/api/alerts", authMiddleware, (req, res) => {
 });
 
 // =====================================================
+// ✅ Serve Firebase Messaging Service Worker (FCM Root Access)
+// =====================================================
+app.get("/firebase-messaging-sw.js", (req, res) => {
+  res.sendFile(path.join(__dirname, "static/js/firebase-messaging-sw.js"));
+});
+
+// =====================================================
 // 🔹 HTML TEMPLATE ROUTES
 // =====================================================
 app.get("/", (req, res) => res.sendFile(path.join(__dirname, "templates", "login.html")));
