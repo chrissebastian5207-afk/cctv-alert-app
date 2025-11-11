@@ -355,6 +355,14 @@ io.on("connection", (socket) => {
 });
 
 // =====================================================
+// 🪵 Global 404 logger — see which files are missing
+// =====================================================
+app.use((req, res, next) => {
+  console.warn(`⚠️ 404 - Not Found: ${req.originalUrl}`);
+  res.status(404).send("Not Found");
+});
+
+// =====================================================
 // 🚀 START SERVER
 // =====================================================
 httpServer.listen(PORT, () => {
