@@ -10,19 +10,8 @@
   <link rel="manifest" href="/manifest.json">
   <link rel="icon" href="/static/icons/icon-192.png">
 
-  <!-- ✅ Firebase SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging-compat.js"></script>
+  <!-- ✅ Firebase (Modular SDK for v10) -->
   <script type="module" src="/static/js/firebase-config.js"></script>
-
-  <!-- ✅ Register service worker -->
-  <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/static/firebase-messaging-sw.js')
-        .then(reg => console.log('✅ FCM Service Worker registered:', reg.scope))
-        .catch(err => console.error('❌ FCM registration failed:', err));
-    }
-  </script>
 
   <!-- ✅ Verify role before rendering -->
   <script>
@@ -170,6 +159,7 @@
   <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
   <script src="/static/js/socket.js"></script>
 
+  <!-- ✅ Dashboard Logic -->
   <script>
     const usernameDisplay = document.getElementById("username-display");
     const soundToggle = document.getElementById("sound-toggle");
