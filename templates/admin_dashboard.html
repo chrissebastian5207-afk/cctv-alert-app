@@ -13,12 +13,10 @@
   <!-- ✅ Socket.io & Firebase -->
   <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
   <script type="module" src="/static/js/firebase-config.js"></script>
-  <script src="/static/js/socket.js"></script>
 
   <!-- ✅ Verify Admin before showing -->
   <script>
     document.documentElement.style.visibility = "hidden";
-
     async function verifyAdmin() {
       try {
         const savedRole = localStorage.getItem("role");
@@ -26,10 +24,8 @@
           document.documentElement.style.visibility = "visible";
           return;
         }
-
         const res = await fetch("/api/me", { credentials: "include" });
         const data = await res.json();
-
         if (data.ok && data.user.role === "admin") {
           localStorage.setItem("role", "admin");
           document.documentElement.style.visibility = "visible";
@@ -43,7 +39,6 @@
         window.location.href = "/";
       }
     }
-
     verifyAdmin();
   </script>
 
@@ -53,7 +48,6 @@
     document.documentElement.setAttribute("data-theme", savedTheme);
   </script>
 
-  <!-- ✅ Minimal internal styling (unchanged logic) -->
   <style>
     body {
       background: linear-gradient(160deg, #04070f, #0c1220);
@@ -62,29 +56,11 @@
       margin: 0;
       overflow-x: hidden;
     }
-    #username-display {
-      font-weight: 600;
-      color: var(--accent, #00bcd4);
-      margin-right: 12px;
-    }
-    .toast {
-      position: fixed;
-      bottom: 25px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #222;
-      color: #fff;
-      padding: 10px 18px;
-      border-radius: 20px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-      animation: fadeInOut 3s;
-      z-index: 99999;
-      font-size: 14px;
-    }
-    @keyframes fadeInOut {
-      0%,100%{opacity:0}
-      10%,90%{opacity:1}
-    }
+    #username-display { font-weight: 600; color: var(--accent, #00bcd4); margin-right: 12px; }
+    .toast { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%);
+      background: #222; color: #fff; padding: 10px 18px; border-radius: 20px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3); animation: fadeInOut 3s; z-index: 99999; font-size: 14px; }
+    @keyframes fadeInOut { 0%,100%{opacity:0} 10%,90%{opacity:1} }
   </style>
 </head>
 
@@ -109,7 +85,6 @@
     </div>
   </header>
 
-  <!-- ✅ Dashboard Container -->
   <div class="container">
     <!-- Stats -->
     <section class="grid stats" id="stats-bar">
@@ -123,30 +98,26 @@
       <h2>🚨 Send Alert</h2>
       <p class="subtle small">Choose a quick action or create a custom alert.</p>
       <div class="alert-buttons" style="margin-top:12px">
-        <button class="alert-btn btn-fire" onclick="sendAlert('Fire', '🔥 FIRE ALERT! Evacuate immediately!', 'Critical')">🔥 FIRE ALERT</button>
-        <button class="alert-btn btn-security" onclick="sendAlert('Security Breach', '⚠️ Security breach detected. Stay alert!', 'High')">⚠️ SECURITY BREACH</button>
-        <button class="alert-btn btn-medical" onclick="sendAlert('Medical Emergency', '🚑 Medical emergency. Assistance needed!', 'Critical')">🚑 MEDICAL EMERGENCY</button>
-        <button class="alert-btn btn-intruder" onclick="sendAlert('Intruder Alert', '👁️ Intruder detected on premises!', 'High')">👁️ INTRUDER ALERT</button>
-        <button class="alert-btn btn-lockdown" onclick="sendAlert('Lockdown', '🔒 LOCKDOWN initiated. Secure all doors!', 'Critical')">🔒 LOCKDOWN</button>
-        <button class="alert-btn btn-evacuation" onclick="sendAlert('Evacuation', '🚪 EVACUATION order. Leave building now!', 'Critical')">🚪 EVACUATION</button>
+        <button class="alert-btn btn-fire" onclick="sendAlert('Fire','🔥 FIRE ALERT! Evacuate immediately!','Critical')">🔥 FIRE ALERT</button>
+        <button class="alert-btn btn-security" onclick="sendAlert('Security Breach','⚠️ Security breach detected. Stay alert!','High')">⚠️ SECURITY BREACH</button>
+        <button class="alert-btn btn-medical" onclick="sendAlert('Medical Emergency','🚑 Medical emergency. Assistance needed!','Critical')">🚑 MEDICAL EMERGENCY</button>
+        <button class="alert-btn btn-intruder" onclick="sendAlert('Intruder Alert','👁️ Intruder detected on premises!','High')">👁️ INTRUDER ALERT</button>
+        <button class="alert-btn btn-lockdown" onclick="sendAlert('Lockdown','🔒 LOCKDOWN initiated. Secure all doors!','Critical')">🔒 LOCKDOWN</button>
+        <button class="alert-btn btn-evacuation" onclick="sendAlert('Evacuation','🚪 EVACUATION order. Leave building now!','Critical')">🚪 EVACUATION</button>
         <button class="alert-btn btn-custom" onclick="showCustomAlert()">✏️ CUSTOM ALERT</button>
       </div>
       <p id="alertMsg" class="message"></p>
     </div>
 
     <!-- Custom Alert Modal -->
-    <div id="customModal" class="hidden" style="position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:1200; display:flex; align-items:center; justify-content:center; padding:16px;">
+    <div id="customModal" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1200;display:flex;align-items:center;justify-content:center;padding:16px;">
       <div class="card" style="width:min(520px,100%)">
         <h2>✏️ Custom Alert</h2>
         <form id="customAlertForm">
-          <div class="row">
-            <input id="customTitle" class="input" type="text" placeholder="Alert Title" required style="flex:1">
-          </div>
+          <div class="row"><input id="customTitle" class="input" type="text" placeholder="Alert Title" required></div>
+          <div class="row" style="margin-top:8px"><textarea id="customMessage" class="input" placeholder="Alert Message" rows="4" required></textarea></div>
           <div class="row" style="margin-top:8px">
-            <textarea id="customMessage" class="input" placeholder="Alert Message" rows="4" required style="flex:1; min-height:110px"></textarea>
-          </div>
-          <div class="row" style="margin-top:8px">
-            <select id="customPriority" class="select" style="flex:1">
+            <select id="customPriority" class="select">
               <option value="Low">Low Priority</option>
               <option value="Medium">Medium Priority</option>
               <option value="High">High Priority</option>
@@ -166,15 +137,12 @@
     <section class="card">
       <div class="collapsible open" id="history-wrap">
         <div class="collapsible-head" onclick="toggleCollapsible('history-wrap')">
-          <div class="row">
-            <h2 style="margin:0">📋 Alert History</h2>
-            <span class="subtle small">Show / Hide</span>
-          </div>
+          <div class="row"><h2 style="margin:0">📋 Alert History</h2><span class="subtle small">Show / Hide</span></div>
           <button class="btn btn-ghost" aria-label="Toggle history">▾</button>
         </div>
         <div class="collapsible-body">
           <div class="controls" style="margin-bottom:10px">
-            <input id="filter-key" class="input" type="search" placeholder="Search text..." aria-label="Search alerts">
+            <input id="filter-key" class="input" type="search" placeholder="Search text...">
             <input id="filter-from-date" class="input" type="date">
             <input id="filter-to-date" class="input" type="date">
             <select id="filter-priority" class="select">
@@ -193,9 +161,11 @@
     </section>
   </div>
 
+  <!-- ✅ Single socket import -->
+  <script src="/static/js/socket.js"></script>
+
   <!-- ✅ Inline Logic -->
   <script>
-    const socket = io(); // ✅ FIXED: initialize socket to avoid "undefined" error
     const usernameDisplay = document.getElementById('username-display');
     let ALL_ALERTS = [];
 
@@ -226,10 +196,8 @@
         alertMsg.textContent = 'Sending alert...';
         alertMsg.className = 'message info';
         const res = await fetch('/api/send_alert', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({ title, message, priority })
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          credentials: 'include', body: JSON.stringify({ title, message, priority })
         });
         const result = await res.json();
         if (result.status === 'ok') {
@@ -249,6 +217,7 @@
 
     function showCustomAlert(){ document.getElementById('customModal').classList.remove('hidden'); }
     function closeCustomModal(){ document.getElementById('customModal').classList.add('hidden'); document.getElementById('customAlertForm').reset(); }
+
     document.getElementById('customAlertForm').addEventListener('submit', async e => {
       e.preventDefault();
       const title = customTitle.value.trim();
@@ -277,10 +246,7 @@
 
     function renderAlerts(list){
       const alertsList = document.getElementById('alerts-list');
-      if (!list || !list.length){
-        alertsList.innerHTML = '<p class="subtle">No alerts yet.</p>';
-        return;
-      }
+      if (!list || !list.length){ alertsList.innerHTML = '<p class="subtle">No alerts yet.</p>'; return; }
       alertsList.innerHTML = '';
       list.forEach(alert => {
         const date = new Date(alert.timestamp);
@@ -293,8 +259,7 @@
             <span class="badge badge-${pr}">${(alert.priority||'MEDIUM').toUpperCase()}</span>
           </div>
           <p class="small">${alert.message}</p>
-          <small class="subtle">📅 ${date.toLocaleString()}</small>
-        `;
+          <small class="subtle">📅 ${date.toLocaleString()}</small>`;
         alertsList.appendChild(card);
       });
     }
@@ -321,8 +286,7 @@
         const matchText = key ? text.includes(key) : true;
         const matchPrio = prio ? (a.priority||'').toLowerCase() === prio : true;
         const t = new Date(a.timestamp).getTime();
-        const matchRange = (!fromDT || t >= fromDT) && (!toDT || t <= toDT);
-        return matchText && matchPrio && matchRange;
+        return matchText && matchPrio && (!fromDT || t >= fromDT) && (!toDT || t <= toDT);
       });
       renderAlerts(filtered);
       updateStats(filtered);
@@ -338,7 +302,6 @@
     }
 
     function toggleCollapsible(id){ document.getElementById(id).classList.toggle('open'); }
-
     window.addEventListener('DOMContentLoaded', loadAlerts);
   </script>
 </body>
