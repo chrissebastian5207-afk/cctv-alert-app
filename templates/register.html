@@ -3,15 +3,18 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Register | CCTV Monitor</title>
-  <link rel="stylesheet" href="/css/style.css">
+  <title>Register | CCTV Alert System</title>
+
+  <!-- ✅ Correct static file paths -->
+  <link rel="stylesheet" href="/static/css/style.css">
   <link rel="manifest" href="/manifest.json">
-  <link rel="icon" href="/icons/icon-192.png">
-<script>
-  // ✅ Apply saved theme before the page renders (for global dark/light mode)
-  const savedTheme = localStorage.getItem("theme") || "light";
-  document.documentElement.setAttribute("data-theme", savedTheme);
-</script>
+  <link rel="icon" href="/static/icons/icon-192.png">
+
+  <!-- ✅ Apply saved theme before render -->
+  <script>
+    const savedTheme = localStorage.getItem("theme") || "light";
+    document.documentElement.setAttribute("data-theme", savedTheme);
+  </script>
 
   <style>
     /* ===== Background & Layout ===== */
@@ -28,7 +31,7 @@
 
     .card {
       background: rgba(17, 24, 39, 0.95);
-      backdrop-filter: blur(12px);
+      backdrop-filter: blur(10px);
       border-radius: 16px;
       box-shadow: 0 6px 25px rgba(0,0,0,0.6);
       width: 100%;
@@ -114,7 +117,6 @@
       text-decoration: underline;
     }
 
-    /* ===== Responsive ===== */
     @media (max-width: 500px) {
       .card {
         margin: 0 20px;
@@ -127,7 +129,7 @@
 <body>
   <div class="card">
     <h2>🔐 Create Your Account</h2>
-    <p class="subtle" style="margin-bottom: 20px; color:#aaa;">Join the CCTV Alert System to monitor securely.</p>
+    <p class="subtle" style="margin-bottom: 20px; color:#aaa;">Join the CCTV Alert System securely.</p>
 
     <form id="registerForm">
       <div class="form-group">
@@ -151,7 +153,6 @@
 
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
-
       msg.textContent = "";
       msg.className = "message";
 
@@ -179,6 +180,7 @@
         const response = await fetch("/api/register", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          credentials: "include", // ✅ Allow cookies for auto-login flow
           body: JSON.stringify(data)
         });
 
@@ -189,6 +191,8 @@
             ? "✅ Registered successfully as ADMIN! Redirecting..."
             : "✅ Registered successfully! Redirecting...";
           msg.className = "message success";
+
+          localStorage.setItem("role", result.role);
 
           setTimeout(() => {
             window.location.href = "/";

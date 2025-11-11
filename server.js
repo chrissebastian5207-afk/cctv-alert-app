@@ -1,6 +1,9 @@
-import { fileURLToPath } from "url";
-import path from "path";
+// =====================================================
+// ✅ CCTV ALERT SYSTEM — FULL SERVER CODE (FINAL CLEAN VERSION)
+// =====================================================
 import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 import express from "express";
 import Database from "better-sqlite3";
 import bcrypt from "bcryptjs";
@@ -10,20 +13,29 @@ import helmet from "helmet";
 import cors from "cors";
 import { createServer } from "http";
 import { Server } from "socket.io";
-import admin from "firebase-admin"; // ✅ Firebase Admin SDK
+import admin from "firebase-admin"; // Firebase Admin SDK
 
+// =====================================================
+// 🔹 PATH SETUP
+// =====================================================
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 console.log("🧭 Current directory:", __dirname);
 
+// =====================================================
+// 🔹 SERVER + SOCKET.IO SETUP
+// =====================================================
 const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: { origin: "*", methods: ["GET", "POST"] },
 });
 
-const db = new Database("./users.db");
+// =====================================================
+// 🔹 CONFIG
+// =====================================================
+const db = new Database(path.join(__dirname, "users.db"));
 const JWT_SECRET = "super_secure_jwt_key_change_in_production";
 const PORT = process.env.PORT || 3000;
 const DEBUG_MODE = false;
@@ -74,12 +86,19 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(cors({ origin: true, credentials: true }));
-app.use(express.static(path.join(__dirname, "static")));
+app.use("/static", express.static(path.join(__dirname, "static"))); // ✅ Serve all static assets
 
-// ✅ Serve manifest and Firebase config explicitly
+// =====================================================
+// 🔹 STATIC FILES & SERVICE WORKERS
+// =====================================================
 app.get("/manifest.json", (req, res) => {
   res.sendFile(path.join(__dirname, "manifest.json"));
 });
+
+app.get("/firebase-messaging-sw.js", (req, res) => {
+  res.sendFile(path.join(__dirname, "static/js/firebase-messaging-sw.js"));
+});
+
 app.get("/static/js/firebase-config.js", (req, res) => {
   res.sendFile(path.join(__dirname, "static/js/firebase-config.js"));
 });
@@ -122,18 +141,14 @@ function authMiddleware(req, res, next) {
 }
 
 // =====================================================
-// 🔹 FIREBASE ADMIN INITIALIZATION (UPDATED ✅)
+// 🔹 FIREBASE ADMIN INITIALIZATION
 // =====================================================
 try {
   const serviceAccountPath = path.join(__dirname, "serviceAccountKey.json");
 
   if (fs.existsSync(serviceAccountPath)) {
     const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, "utf-8"));
-
-    admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount),
-    });
-
+    admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
     console.log("✅ Firebase Admin initialized");
   } else {
     console.warn("⚠️ serviceAccountKey.json not found — Push notifications disabled.");
@@ -296,6 +311,17 @@ app.get("/api/alerts", authMiddleware, (req, res) => {
   const alerts = loadAlerts();
   res.json({ ok: true, alerts: alerts.reverse() });
 });
+
+// =====================================================
+// 🔹 HTML TEMPLATE ROUTES
+// =====================================================
+app.get("/", (req, res) => res.sendFile(path.join(__dirname, "templates", "login.html")));
+app.get("/register", (req, res) => res.sendFile(path.join(__dirname, "templates", "register.html")));
+app.get("/admin", (req, res) => res.sendFile(path.join(__dirname, "templates", "admin_dashboard.html")));
+app.get("/user", (req, res) => res.sendFile(path.join(__dirname, "templates", "user_dashboard.html")));
+app.get("/settings", (req, res) => res.sendFile(path.join(__dirname, "templates", "settings.html")));
+app.get("/privacy", (req, res) => res.sendFile(path.join(__dirname, "templates", "privacy.html")));
+app.get("/contact", (req, res) => res.sendFile(path.join(__dirname, "templates", "contact.html")));
 
 // =====================================================
 // 🔹 SOCKET.IO

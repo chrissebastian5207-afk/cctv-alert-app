@@ -4,19 +4,24 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Admin Dashboard | CCTV Alert System</title>
-  <link rel="stylesheet" href="/css/style.css">
-  <link rel="manifest" href="/manifest.json">
-  <link rel="icon" href="/icons/icon-192.png">
 
-  <!-- 🚀 Verify admin before showing content -->
+  <!-- ✅ Static Assets -->
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="icon" href="/static/icons/icon-192.png">
+  <link rel="manifest" href="/manifest.json">
+
+  <!-- ✅ Socket.io & Firebase -->
+  <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
+  <script type="module" src="/static/js/firebase-config.js"></script>
+  <script src="/static/js/socket.js"></script>
+
+  <!-- ✅ Verify Admin before showing -->
   <script>
-    document.documentElement.style.visibility = "hidden"; // hide page until verified
+    document.documentElement.style.visibility = "hidden";
 
     async function verifyAdmin() {
       try {
         const savedRole = localStorage.getItem("role");
-
-        // If cached as admin, load instantly
         if (savedRole === "admin") {
           document.documentElement.style.visibility = "visible";
           return;
@@ -42,12 +47,13 @@
     verifyAdmin();
   </script>
 
-  <!-- Apply global theme -->
+  <!-- ✅ Theme -->
   <script>
     const savedTheme = localStorage.getItem("theme") || "light";
     document.documentElement.setAttribute("data-theme", savedTheme);
   </script>
 
+  <!-- ✅ Minimal internal styling (unchanged logic) -->
   <style>
     body {
       background: linear-gradient(160deg, #04070f, #0c1220);
@@ -83,11 +89,11 @@
 </head>
 
 <body>
-  <!-- Appbar -->
+  <!-- ✅ Appbar -->
   <header class="appbar">
     <div class="appbar-inner">
       <div class="brand">
-        <img src="/icons/icon-192.png" width="36" height="36" style="margin-right:10px">
+        <img src="/static/icons/icon-192.png" width="36" height="36" alt="App Icon" style="margin-right:10px">
         <div>CCTV Alert System</div>
       </div>
       <nav class="row">
@@ -103,6 +109,7 @@
     </div>
   </header>
 
+  <!-- ✅ Dashboard Container -->
   <div class="container">
     <!-- Stats -->
     <section class="grid stats" id="stats-bar">
@@ -186,14 +193,12 @@
     </section>
   </div>
 
-  <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
-  <script src="/js/socket.js"></script>
-
+  <!-- ✅ Inline Logic -->
   <script>
+    const socket = io(); // ✅ FIXED: initialize socket to avoid "undefined" error
     const usernameDisplay = document.getElementById('username-display');
     let ALL_ALERTS = [];
 
-    // 🔌 Socket events
     socket.on('connect', async () => {
       document.getElementById('connection-status').innerHTML =
         '<span class="status-dot is-online"></span>Connected';
@@ -209,14 +214,12 @@
         '<span class="status-dot is-offline"></span>Disconnected';
     });
 
-    // 🔒 Logout
     async function logout() {
       localStorage.removeItem("role");
       await fetch('/api/logout', { method: 'POST', credentials: 'include' });
       window.location.href = '/';
     }
 
-    // 🚨 Send alert
     async function sendAlert(title, message, priority) {
       const alertMsg = document.getElementById('alertMsg');
       try {
@@ -244,7 +247,6 @@
       }
     }
 
-    // Modal
     function showCustomAlert(){ document.getElementById('customModal').classList.remove('hidden'); }
     function closeCustomModal(){ document.getElementById('customModal').classList.add('hidden'); document.getElementById('customAlertForm').reset(); }
     document.getElementById('customAlertForm').addEventListener('submit', async e => {
@@ -256,7 +258,6 @@
       closeCustomModal();
     });
 
-    // Alerts
     async function loadAlerts() {
       try {
         const res = await fetch('/api/alerts', { credentials: 'include' });

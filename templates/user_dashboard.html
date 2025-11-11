@@ -4,22 +4,25 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>User Dashboard | CCTV Alert System</title>
-  <link rel="stylesheet" href="/css/style.css">
+
+  <!-- ✅ Correct paths -->
+  <link rel="stylesheet" href="/static/css/style.css">
   <link rel="manifest" href="/manifest.json">
-  <link rel="icon" href="/icons/icon-192.png">
+  <link rel="icon" href="/static/icons/icon-192.png">
 
+  <!-- ✅ Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging-compat.js"></script>
-<script src="/static/js/firebase-config.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging-compat.js"></script>
+  <script type="module" src="/static/js/firebase-config.js"></script>
 
-<script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/firebase-messaging-sw.js')
-      .then(reg => console.log('✅ FCM Service Worker registered:', reg.scope))
-      .catch(err => console.error('❌ FCM registration failed:', err));
-  }
-</script>
-
+  <!-- ✅ Register service worker -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/static/firebase-messaging-sw.js')
+        .then(reg => console.log('✅ FCM Service Worker registered:', reg.scope))
+        .catch(err => console.error('❌ FCM registration failed:', err));
+    }
+  </script>
 
   <!-- ✅ Verify role before rendering -->
   <script>
@@ -28,8 +31,6 @@
     async function verifyUser() {
       try {
         const savedRole = localStorage.getItem("role");
-
-        // Quick check for faster reload
         if (savedRole === "user") {
           document.documentElement.style.visibility = "visible";
           return;
@@ -56,11 +57,10 @@
         window.location.href = "/";
       }
     }
-
     verifyUser();
   </script>
 
-  <!-- Global theme -->
+  <!-- ✅ Global theme -->
   <script>
     const savedTheme = localStorage.getItem("theme") || "light";
     document.documentElement.setAttribute("data-theme", savedTheme);
@@ -74,11 +74,13 @@
       margin: 0;
       overflow-x: hidden;
     }
+
     #username-display {
       font-weight: 600;
       color: var(--accent, #00bcd4);
       margin-right: 12px;
     }
+
     .toast {
       position: fixed;
       bottom: 25px;
@@ -93,16 +95,20 @@
       z-index: 99999;
       font-size: 14px;
     }
-    @keyframes fadeInOut { 0%,100%{opacity:0} 10%,90%{opacity:1} }
+
+    @keyframes fadeInOut {
+      0%,100% { opacity:0 }
+      10%,90% { opacity:1 }
+    }
   </style>
 </head>
 
 <body>
-  <!-- Appbar -->
+  <!-- ✅ Top Appbar -->
   <header class="appbar">
     <div class="appbar-inner">
       <div class="brand">
-        <img src="/icons/icon-192.png" width="40" height="40" style="margin-right:10px">
+        <img src="/static/icons/icon-192.png" width="40" height="40" style="margin-right:10px">
         <div>CCTV Alert System</div>
       </div>
       <nav class="row">
@@ -118,6 +124,7 @@
     </div>
   </header>
 
+  <!-- ✅ Alerts Container -->
   <div class="container">
     <div class="card">
       <div class="row" style="align-items:center">
@@ -159,9 +166,9 @@
     </div>
   </div>
 
-  <!-- Socket -->
+  <!-- ✅ Socket.IO -->
   <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
-  <script src="/js/socket.js"></script>
+  <script src="/static/js/socket.js"></script>
 
   <script>
     const usernameDisplay = document.getElementById("username-display");
@@ -185,27 +192,20 @@
         '<span class="status-dot is-offline"></span>Disconnected';
     });
 
-    // 🧠 Load full history instead of replacing
-socket.on("alertHistory", (alerts) => {
-  if (!alerts?.length) {
-    console.log("No alerts received from server.");
-    return;
-  }
+    // 🧠 Receive full history
+    socket.on("alertHistory", (alerts) => {
+      if (!alerts?.length) return;
+      const seen = new Set();
+      ALL_ALERTS = [...alerts, ...ALL_ALERTS].filter(a => {
+        if (seen.has(a.id)) return false;
+        seen.add(a.id);
+        return true;
+      });
+      renderAlerts(ALL_ALERTS);
+      updateAlertCount();
+    });
 
-  // Merge and deduplicate alerts
-  const seen = new Set();
-  ALL_ALERTS = [...alerts, ...ALL_ALERTS].filter(a => {
-    if (seen.has(a.id)) return false;
-    seen.add(a.id);
-    return true;
-  });
-
-  renderAlerts(ALL_ALERTS);
-  updateAlertCount();
-});
-
-
-
+    // 🚨 Live new alerts
     socket.on("newAlert", (alert) => {
       ALL_ALERTS.unshift(alert);
       displayAlert(alert);
@@ -256,8 +256,8 @@ socket.on("alertHistory", (alerts) => {
 
     function displayAlert(a) {
       const list = document.getElementById("alerts-list");
-      const card = document.createElement("div");
       const pr = (a.priority || "medium").toLowerCase();
+      const card = document.createElement("div");
       card.className = `alert-card priority-${pr}`;
       card.innerHTML = `
         <div class="alert-header">
@@ -295,24 +295,24 @@ socket.on("alertHistory", (alerts) => {
     }
 
     function updateAlertCount() {
-  const count = document.querySelectorAll("#alerts-list .alert-card:not([style*='display: none'])").length;
-  document.getElementById("alert-count").textContent = count;
-}
-
-// ✅ Step 3 – load alerts on first page open
-window.addEventListener("DOMContentLoaded", async () => {
-  try {
-    const res = await fetch("/api/alerts", { credentials: "include" });
-    const data = await res.json();
-    if (data.ok && data.alerts?.length) {
-      ALL_ALERTS = data.alerts;
-      renderAlerts(ALL_ALERTS);
-      updateAlertCount();
+      const count = document.querySelectorAll("#alerts-list .alert-card:not([style*='display: none'])").length;
+      document.getElementById("alert-count").textContent = count;
     }
-  } catch (err) {
-    console.error("Failed to load initial alerts:", err);
-  }
-});
-</script>
+
+    // ✅ Load initial alerts
+    window.addEventListener("DOMContentLoaded", async () => {
+      try {
+        const res = await fetch("/api/alerts", { credentials: "include" });
+        const data = await res.json();
+        if (data.ok && data.alerts?.length) {
+          ALL_ALERTS = data.alerts;
+          renderAlerts(ALL_ALERTS);
+          updateAlertCount();
+        }
+      } catch (err) {
+        console.error("Failed to load initial alerts:", err);
+      }
+    });
+  </script>
 </body>
 </html>

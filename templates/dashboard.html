@@ -4,17 +4,70 @@
   <meta charset="utf-8">
   <title>Dashboard | CCTV Monitor</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="styles.css">
+
+  <!-- ✅ Correct static paths -->
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="icon" href="/static/icons/icon-192.png">
+  <link rel="manifest" href="/manifest.json">
+
+  <style>
+    body {
+      background: linear-gradient(160deg, #04070f, #0c1220);
+      color: #e0e0e0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .card {
+      background: rgba(20, 25, 40, 0.9);
+      padding: 24px;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+    }
+    .btn {
+      background: #00bcd4;
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 500;
+    }
+    .btn:hover { background: #0097a7; }
+    .btn.outline {
+      background: transparent;
+      border: 1px solid #00bcd4;
+      color: #00bcd4;
+    }
+    .btn.outline:hover {
+      background: #00bcd4;
+      color: white;
+    }
+    a {
+      color: #00bcd4;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
 </head>
+
 <body>
   <div class="card">
-    <h2>Dashboard</h2>
+    <h2>📊 Dashboard</h2>
     <div id="info">Loading...</div>
 
     <section id="actions" style="display:none;">
       <p>
-        <a href="settings.html">Settings</a> |
-        <a href="dashboard.html">Refresh</a>
+        <a href="/settings">Settings</a> |
+        <a href="/dashboard">Refresh</a>
       </p>
       <button id="logoutBtn" class="btn outline">Logout</button>
     </section>
@@ -22,32 +75,39 @@
 
   <script>
     async function loadUser() {
-      const res = await fetch("/api/me");
-      const data = await res.json();
-      const info = document.getElementById("info");
-      const actions = document.getElementById("actions");
+      try {
+        const res = await fetch("/api/me", { credentials: "include" });
+        const data = await res.json();
+        const info = document.getElementById("info");
+        const actions = document.getElementById("actions");
 
-      if (!data.ok) {
-        info.textContent = "Please login first.";
-        setTimeout(()=> location.href = "login.html", 1000);
-        return;
+        if (!data.ok) {
+          info.textContent = "Please login first.";
+          setTimeout(() => location.href = "/", 1000);
+          return;
+        }
+
+        const u = data.user;
+        info.innerHTML = `
+          <p>Welcome, <strong>${u.username}</strong>!</p>
+          <p>Your role: <span style="color:${u.role === 'admin' ? '#ff9800' : '#00c853'}">${u.role.toUpperCase()}</span></p>
+          ${
+            u.role === 'admin'
+              ? '<p><a href="/admin" class="btn">Go to Admin Panel</a></p>'
+              : '<p>You have standard access.</p>'
+          }
+        `;
+        actions.style.display = "block";
+      } catch (err) {
+        document.getElementById("info").textContent = "Error loading user info.";
+        console.error(err);
       }
-
-      const u = data.user;
-      info.innerHTML = `
-        <p>Welcome, <strong>${u.username}</strong>!</p>
-        <p>Your role: <span style="color:${u.role==='admin'?'#ff9800':'#00c853'}">${u.role.toUpperCase()}</span></p>
-        ${u.role==='admin'
-          ? '<p><a href="admin.html" class="btn">Go to Admin Panel</a></p>'
-          : '<p>You have standard access.</p>'}
-      `;
-      actions.style.display = "block";
     }
 
-    document.getElementById("logoutBtn").addEventListener("click", async ()=>{
-      await fetch("/api/logout", { method: "POST" });
-      alert("Logged out.");
-      location.href = "login.html";
+    document.getElementById("logoutBtn").addEventListener("click", async () => {
+      await fetch("/api/logout", { method: "POST", credentials: "include" });
+      alert("Logged out successfully.");
+      location.href = "/";
     });
 
     loadUser();
