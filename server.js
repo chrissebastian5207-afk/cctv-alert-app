@@ -1,5 +1,5 @@
 // =====================================================
-// ✅ CCTV ALERT SYSTEM — FULL SERVER CODE (FINAL CLEAN VERSION)
+// ✅ CCTV ALERT SYSTEM — FULL SERVER CODE (FINAL FIXED VERSION)
 // =====================================================
 import fs from "fs";
 import path from "path";
@@ -33,13 +33,12 @@ const io = new Server(httpServer, {
     origin: "*",
     methods: ["GET", "POST"]
   },
-  // ✅ STABILITY SETTINGS - Prevents transport close disconnections
-  pingTimeout: 60000,        // 60 seconds before considering connection dead
-  pingInterval: 25000,       // Send ping every 25 seconds
-  upgradeTimeout: 30000,     // Time to wait for transport upgrade
-  transports: ['websocket', 'polling'], // Try WebSocket first, fallback to polling
-  allowUpgrades: true,       // Allow upgrading from polling to websocket
-  perMessageDeflate: false,  // Disable compression for stability
+  pingTimeout: 60000,
+  pingInterval: 25000,
+  upgradeTimeout: 30000,
+  transports: ['websocket', 'polling'],
+  allowUpgrades: true,
+  perMessageDeflate: false,
   httpCompression: false
 });
 
@@ -111,8 +110,9 @@ app.get("/firebase-messaging-sw.js", (req, res) => {
   res.sendFile(path.join(__dirname, "firebase-messaging-sw.js"));
 });
 
-app.get("/static/js/firebase-config.js", (req, res) => {
-  res.sendFile(path.join(__dirname, "static/js/firebase-config.js"));
+// ✅ Serve Firebase Config (FIXED — from root, not static/js)
+app.get("/firebase-config.js", (req, res) => {
+  res.sendFile(path.join(__dirname, "firebase-config.js"));
 });
 
 // =====================================================
@@ -314,7 +314,6 @@ app.post("/api/send_alert", authMiddleware, async (req, res) => {
   alerts.push(newAlert);
   saveAlerts(alerts);
 
-  // ✅ Broadcast alert to ALL connected clients via Socket.IO
   io.emit("newAlert", newAlert);
   console.log(`📢 Alert broadcasted to all clients:`, newAlert);
 
@@ -344,13 +343,11 @@ app.get("/contact", (req, res) => res.sendFile(path.join(__dirname, "templates",
 io.on("connection", (socket) => {
   console.log("✅ Client connected:", socket.id);
 
-  // ✅ Send immediate confirmation to client
   socket.emit('connectionConfirmed', {
     socketId: socket.id,
     timestamp: new Date().toISOString()
   });
 
-  // Send alert history when user requests it
   socket.on("userConnected", () => {
     try {
       const alerts = loadAlerts();
@@ -362,19 +359,17 @@ io.on("connection", (socket) => {
     }
   });
 
-  // ✅ Handle disconnection with detailed reason logging
   socket.on("disconnect", (reason) => {
     console.log(`❌ Client disconnected: ${socket.id}, Reason: ${reason}`);
   });
 
-  // ✅ Handle socket errors
   socket.on("error", (error) => {
     console.error(`⚠️ Socket error for ${socket.id}:`, error);
   });
 });
 
 // =====================================================
-// 🪵 Global 404 logger — see which files are missing
+// 🪵 Global 404 logger
 // =====================================================
 app.use((req, res, next) => {
   console.warn(`⚠️ 404 - Not Found: ${req.originalUrl}`);
