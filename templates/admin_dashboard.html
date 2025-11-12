@@ -64,7 +64,7 @@
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
 
-    /* ✅ Mobile-First Logo Header */
+    /* ✅ Compact Logo Header with Hamburger */
     .logo-header {
       position: sticky;
       top: 0;
@@ -72,54 +72,54 @@
       background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(10, 15, 30, 0.95));
       backdrop-filter: blur(15px);
       border-bottom: 1px solid rgba(138, 43, 226, 0.3);
-      padding: 12px 16px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-    }
-
-    .hamburger-btn {
-      background: rgba(138, 43, 226, 0.2);
-      border: 1px solid rgba(138, 43, 226, 0.4);
-      border-radius: 8px;
-      padding: 8px 12px;
-      font-size: 24px;
-      color: #00e5ff;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      min-width: 44px;
-      min-height: 44px;
+      padding: 10px 16px;
       display: flex;
       align-items: center;
       justify-content: center;
+      gap: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+      position: relative;
+    }
+
+    .hamburger-btn {
+      position: absolute;
+      left: 16px;
+      background: transparent;
+      border: none;
+      padding: 8px;
+      font-size: 24px;
+      color: #00e5ff;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      min-width: 40px;
+      min-height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
     }
 
     .hamburger-btn:active {
-      transform: scale(0.95);
-      background: rgba(138, 43, 226, 0.4);
+      transform: scale(0.9);
+      background: rgba(138, 43, 226, 0.2);
     }
 
     .logo-center {
       display: flex;
       align-items: center;
-      gap: 12px;
-      position: absolute;
-      left: 50%;
-      transform: translateX(-50%);
+      gap: 10px;
     }
 
     .logo-center img {
-      width: 48px;
-      height: 48px;
-      border-radius: 12px;
-      box-shadow: 0 0 20px rgba(138, 43, 226, 0.4);
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(138, 43, 226, 0.4);
       border: 2px solid rgba(138, 43, 226, 0.3);
     }
 
     .logo-center span {
-      font-size: 18px;
+      font-size: 16px;
       font-weight: 700;
       background: linear-gradient(135deg, #8a2be2, #00e5ff);
       -webkit-background-clip: text;
@@ -131,60 +131,58 @@
     /* Hamburger Menu Dropdown */
     .menu-dropdown {
       position: fixed;
-      top: 72px;
+      top: 60px;
       left: 0;
       right: 0;
       background: linear-gradient(135deg, rgba(15, 23, 42, 0.98), rgba(10, 15, 30, 0.98));
       backdrop-filter: blur(20px);
       border-bottom: 1px solid rgba(138, 43, 226, 0.3);
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-      transform: translateY(-100%);
-      opacity: 0;
-      transition: all 0.3s ease;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
       z-index: 999;
-      padding: 16px;
     }
 
     .menu-dropdown.show {
-      transform: translateY(0);
-      opacity: 1;
+      max-height: 300px;
+      padding: 12px 16px;
     }
 
     .menu-dropdown a {
       display: block;
-      padding: 16px;
+      padding: 14px;
       color: #e0e0e0;
       text-decoration: none;
-      font-size: 16px;
+      font-size: 15px;
       font-weight: 600;
       border-radius: 8px;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
       background: rgba(255, 255, 255, 0.05);
       border: 1px solid rgba(255, 255, 255, 0.1);
       transition: all 0.2s ease;
     }
 
-    .menu-dropdown a:hover,
     .menu-dropdown a:active {
-      background: rgba(138, 43, 226, 0.2);
-      border-color: rgba(138, 43, 226, 0.4);
-      transform: translateX(4px);
+      background: rgba(138, 43, 226, 0.3);
+      border-color: rgba(138, 43, 226, 0.5);
+      transform: scale(0.98);
     }
 
     @media (min-width: 768px) {
       .logo-header {
-        padding: 16px 24px;
+        padding: 12px 24px;
+        justify-content: flex-start;
       }
-      .logo-center {
+      .hamburger-btn {
         position: static;
-        transform: none;
       }
       .logo-center img {
-        width: 40px;
-        height: 40px;
+        width: 36px;
+        height: 36px;
       }
       .logo-center span {
-        font-size: 16px;
+        font-size: 15px;
       }
     }
 
@@ -353,11 +351,21 @@
 </head>
 
 <body>
-  <!-- ✅ Mobile-First Logo Header -->
+  <!-- ✅ Compact Logo Header with Visible Hamburger -->
   <header class="logo-header">
-    <img src="/static/icons/icon-192.png" alt="CCTV Alert">
-    <span>CCTV ALERTS</span>
+    <button class="hamburger-btn" onclick="toggleMenu()" aria-label="Menu">☰</button>
+    <div class="logo-center">
+      <img src="/static/icons/icon-192.png" alt="CCTV Alert">
+      <span>CCTV ALERTS</span>
+    </div>
   </header>
+
+  <!-- ✅ Hamburger Menu Dropdown -->
+  <nav id="menuDropdown" class="menu-dropdown">
+    <a href="/admin">📊 Dashboard</a>
+    <a href="/settings">⚙️ Settings</a>
+    <a href="/" onclick="logout(); return false;">🚪 Logout</a>
+  </nav>
 
   <!-- ✅ Main Content -->
   <div class="container">
@@ -458,6 +466,22 @@
   <script>
     let ALL_ALERTS = [];
 
+    // 🍔 Toggle hamburger menu
+    function toggleMenu() {
+      const menu = document.getElementById('menuDropdown');
+      menu.classList.toggle('show');
+    }
+
+    // Close menu when clicking outside
+    document.addEventListener('click', (e) => {
+      const menu = document.getElementById('menuDropdown');
+      const hamburger = document.querySelector('.hamburger-btn');
+      if (menu.classList.contains('show') && !menu.contains(e.target) && !hamburger.contains(e.target)) {
+        menu.classList.remove('show');
+      }
+    });
+
+    // 🔌 Socket events
     socket.on('connect', async () => {
       console.log('✅ Admin dashboard connected to Socket.IO');
     });
@@ -465,6 +489,13 @@
     socket.on('disconnect', () => {
       console.log('❌ Admin dashboard disconnected from Socket.IO');
     });
+
+    // 🔒 Logout function
+    async function logout() {
+      localStorage.removeItem("role");
+      await fetch('/api/logout', { method: 'POST', credentials: 'include' });
+      window.location.href = '/';
+    }
 
     async function sendAlert(title, message, priority) {
       const alertMsg = document.getElementById('alertMsg');
