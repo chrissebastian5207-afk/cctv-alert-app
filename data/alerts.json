@@ -467,5 +467,26 @@
     "message": "🔥 FIRE ALERT! Evacuate immediately!",
     "priority": "critical",
     "timestamp": "2025-11-10T07:57:28.631Z"
+  },
+  {
+    "id": 68,
+    "title": "Security Breach",
+    "message": "⚠️ Security breach detected. Stay alert!",
+    "priority": "high",
+    "timestamp": "2025-11-12T04:32:28.762Z"
+  },
+  {
+    "id": 69,
+    "title": "Fire",
+    "message": "🔥 FIRE ALERT! Evacuate immediately!",
+    "priority": "critical",
+    "timestamp": "2025-11-12T04:32:29.481Z"
+  },
+  {
+    "id": 70,
+    "title": "Medical Emergency",
+    "message": "🚑 Medical emergency. Assistance needed!",
+    "priority": "critical",
+    "timestamp": "2025-11-12T04:32:30.526Z"
   }
 ]
