@@ -71,60 +71,63 @@
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
 
-    /* ✅ Floating Logo */
-    .floating-logo {
-      position: fixed;
-      top: 16px;
-      left: 16px;
+    /* ✅ Mobile-First Logo Header */
+    .logo-header {
+      position: sticky;
+      top: 0;
       z-index: 1000;
+      background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(10, 15, 30, 0.95));
+      backdrop-filter: blur(15px);
+      border-bottom: 1px solid rgba(138, 43, 226, 0.3);
+      padding: 12px 16px;
       display: flex;
       align-items: center;
-      gap: 10px;
-      padding: 8px 12px;
-      background: rgba(15, 23, 42, 0.9);
-      backdrop-filter: blur(10px);
+      justify-content: center;
+      gap: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .logo-header img {
+      width: 48px;
+      height: 48px;
       border-radius: 12px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 0 20px rgba(138, 43, 226, 0.4);
+      border: 2px solid rgba(138, 43, 226, 0.3);
     }
 
-    .floating-logo img {
-      width: 32px;
-      height: 32px;
-      border-radius: 8px;
-    }
-
-    .floating-logo span {
-      font-size: 14px;
-      font-weight: 600;
-      color: #e0e0e0;
-      display: none;
+    .logo-header span {
+      font-size: 18px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #8a2be2, #00e5ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: 0.5px;
     }
 
     @media (min-width: 768px) {
-      .floating-logo {
-        top: 20px;
-        left: 20px;
+      .logo-header {
+        padding: 16px 24px;
+        justify-content: flex-start;
       }
-      .floating-logo img {
-        width: 36px;
-        height: 36px;
+      .logo-header img {
+        width: 40px;
+        height: 40px;
       }
-      .floating-logo span {
-        display: inline;
+      .logo-header span {
+        font-size: 16px;
       }
     }
 
     .container {
       padding: 16px;
-      padding-top: 72px;
       max-width: 1200px;
       margin: 0 auto;
     }
 
     @media (min-width: 768px) {
       .container {
-        padding-top: 24px;
+        padding: 24px;
       }
     }
 
@@ -221,6 +224,12 @@
 </head>
 
 <body>
+  <!-- ✅ Floating Logo -->
+  <div class="floating-logo">
+    <img src="/static/icons/icon-192.png" alt="CCTV Alert">
+    <span>CCTV Alerts</span>
+  </div>
+
   <!-- ✅ NO APPBAR - Clean start from content -->
 
   <!-- ✅ Alerts Container -->
