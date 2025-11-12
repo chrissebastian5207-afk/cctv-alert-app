@@ -3,35 +3,208 @@
 <head>
   <meta charset="utf-8">
   <title>Privacy Policy | CCTV Monitor</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+  <meta name="theme-color" content="#0f1724">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <!-- ✅ PWA + Mobile App Meta -->
+<meta name="theme-color" content="#1f1f1f">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" sizes="192x192" href="/static/icons/icon-192x192.png">
+<link rel="apple-touch-icon" sizes="512x512" href="/static/icons/icon-512x512.png">
+
+
+  <meta name="theme-color" content="#1f1f1f">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/static/icons/icon-192x192.png">
+
+  <!-- Manifest / icons -->
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" href="/static/icons/icon-192x192.png">
+
+  <!-- Main stylesheet (existing) -->
   <link rel="stylesheet" href="/static/css/style.css">
+
+  <!-- Firebase (root: served by server.js) -->
+  <script type="module" src="/firebase-config.js"></script>
+
+  <!-- Small in-file styles to keep page mobile-friendly without changing global CSS -->
   <style>
-    body { background:#0e0e0e; color:#f1f1f1; font-family: 'Inter', sans-serif; }
-    .card { max-width:700px; margin:60px auto; background:#1b1b1b; padding:30px; border-radius:16px; box-shadow:0 4px 20px rgba(0,0,0,0.4); }
-    a { color:#58a6ff; }
+    :root { --card-bg: rgba(255,255,255,0.02); --muted: #9ba4b5; --accent: #00bcd4; }
+    html,body { height:100%; margin:0; font-family: 'Segoe UI', Tahoma, Arial, sans-serif; background: linear-gradient(160deg, #04070f, #0c1220); color: #e6eef6; -webkit-font-smoothing:antialiased; }
+    /* Appbar */
+    .appbar { position:fixed; top:0; left:0; right:0; z-index:1000; background: rgba(8,10,14,0.7); backdrop-filter: blur(8px); border-bottom: 1px solid rgba(255,255,255,0.03); }
+    .appbar-inner { max-width:1200px; margin:0 auto; padding:10px 12px; display:flex; align-items:center; gap:12px; }
+    .brand { display:flex; align-items:center; gap:10px; font-weight:700; color:#fff; }
+    .brand img { width:36px; height:36px; border-radius:6px; background:transparent; }
+    .nav-row { margin-left:12px; display:flex; gap:12px; align-items:center; }
+    .link { color: rgba(255,255,255,0.88); text-decoration:none; padding:6px 10px; border-radius:8px; font-weight:600; }
+    .spacer { flex:1; }
+    .user-info { display:flex; gap:10px; align-items:center; color:var(--muted); font-size:0.95rem; }
+    .status-dot { width:10px; height:10px; border-radius:50%; display:inline-block; margin-right:6px; background:#16a34a; box-shadow:0 0 6px rgba(0,184,148,0.5); }
+    /* Hamburger menu */
+    .hamburger { display:inline-flex; width:40px; height:40px; align-items:center; justify-content:center; border-radius:8px; cursor:pointer; background: rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.03); }
+    .menu-panel { position:fixed; top:64px; right:12px; width:220px; background:var(--card-bg); border-radius:12px; padding:8px; box-shadow:0 8px 30px rgba(0,0,0,0.6); display:none; z-index:1200; border:1px solid rgba(255,255,255,0.04); }
+    .menu-panel.show { display:block; }
+    .menu-item { display:block; padding:10px 12px; color:#e6eef6; text-decoration:none; border-radius:8px; font-weight:700; }
+    .menu-item.logout { background: rgba(255,255,255,0.02); margin-top:8px; text-align:center; }
+
+    /* Content card */
+    .container { max-width:900px; margin:110px auto 48px; padding:16px; }
+    .card { background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border-radius:14px; padding:22px; border:1px solid rgba(255,255,255,0.03); box-shadow: var(--shadow, 0 10px 30px rgba(0,0,0,0.6)); color: #e9eef5; }
+    h1 { margin:0 0 8px; font-size:1.6rem; color: #fff; }
+    p.lead { color:var(--muted); margin-bottom:14px; }
+    .section { margin-top:18px; }
+    .section h3 { margin:12px 0; color:var(--accent); font-size:1.05rem; }
+    .small { color:var(--muted); font-size:0.95rem; line-height:1.6; }
+
+    /* Mobile tweaks */
+    @media (max-width:700px){
+      .appbar-inner { padding:10px; gap:8px; }
+      .nav-row { display:none; }
+      .container { margin-top:96px; padding:12px; }
+      .brand div { font-size:1rem; }
+      .card { padding:16px; }
+      .menu-panel { right:8px; width:200px; top:62px; }
+    }
   </style>
 </head>
+
 <body>
-  <div class="card">
-    <h1>🔒 Privacy Policy</h1>
-    <p><small>Last updated: November 2025</small></p>
-    <p>
-      CCTV Monitor collects only essential information needed to provide alert and monitoring features.
-    </p>
+  <!-- Appbar (single logout inside hamburger) -->
+  <header class="appbar" role="banner">
+    <div class="appbar-inner">
+      <div class="brand">
+        <img src="/static/icons/icon-192x192.png" alt="CCTV">
+        <div>CCTV Alert System</div>
+      </div>
 
-    <ul>
-      <li>We store only usernames, roles, and alert preferences.</li>
-      <li>No personal data is shared with third parties.</li>
-      <li>All communications are encrypted with HTTPS.</li>
-      <li>Notifications are used solely to deliver security alerts.</li>
-      <li>Users can delete their accounts and all data anytime via the Settings page.</li>
-    </ul>
+      <nav class="nav-row" aria-label="Main Navigation">
+        <a class="link" href="/user">Live</a>
+        <a class="link" href="/settings">Settings</a>
+        <a class="link" href="/contact">Contact</a>
+      </nav>
 
-    <p>
-      For any questions, contact us at:<br>
-      <a href="mailto:chris.sebastian.5207@gmail.com">chris.sebastian.5207@gmail.com</a>
-    </p>
-    <p><a href="/settings" class="btn btn-secondary">← Back to Settings</a></p>
-  </div>
+      <div class="spacer"></div>
+
+      <div class="user-info" id="user-info">
+        <span id="username-display">👋 test</span>
+        <span id="connection-status"><span class="status-dot"></span>Connected</span>
+      </div>
+
+      <button class="hamburger" id="hamburger" aria-label="Open menu">☰</button>
+      <div class="menu-panel" id="menuPanel" role="menu" aria-hidden="true">
+        <a class="menu-item" href="/user">Dashboard</a>
+        <a class="menu-item" href="/settings">Settings</a>
+        <a class="menu-item logout" href="#" id="menuLogout">Logout</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main content -->
+  <main class="container" role="main">
+    <article class="card" id="privacyCard">
+      <h1>Privacy Policy</h1>
+      <p class="lead">Last updated: <strong>11/11/2025</strong></p>
+
+      <!-- Keep your original privacy content here — unchanged except styling -->
+      <div class="section">
+        <h3>1. Introduction</h3>
+        <p class="small">
+          CCTV Alert System (“we”, “our”, “the App”) is committed to protecting your privacy. This policy explains how we handle your data including push notification tokens, user accounts, and logs.
+        </p>
+      </div>
+
+      <div class="section">
+        <h3>2. Data We Collect</h3>
+        <p class="small">
+          - Account information (username, password hash).<br>
+          - FCM tokens for push notifications (saved securely on server in <code>/data/fcm_tokens.json</code>).<br>
+          - Alerts history (stored in <code>/data/alerts.json</code>).<br>
+          - Optional diagnostics & logs for connectivity.
+        </p>
+      </div>
+
+      <div class="section">
+        <h3>3. How We Use Data</h3>
+        <p class="small">We use tokens to send notifications and alerts to your devices. We never share tokens or personally identifiable data with third parties except required Firebase services for messaging.</p>
+      </div>
+
+      <div class="section">
+        <h3>4. Security</h3>
+        <p class="small">We recommend strong passwords. Service account credentials and other secrets are stored securely on the server and not committed to source control.</p>
+      </div>
+
+      <div class="section">
+        <h3>5. Contact</h3>
+        <p class="small">For privacy-related requests, email: <a href="mailto:privacy@yourdomain.com">privacy@yourdomain.com</a>.</p>
+      </div>
+
+    </article>
+  </main>
+
+  <!-- Socket + menu behavior (socket.js already included in /static/js/socket.js) -->
+  <script src="/static/js/socket.js"></script>
+
+  <script>
+    // Hamburger menu toggle
+    const hamburger = document.getElementById('hamburger');
+    const menuPanel = document.getElementById('menuPanel');
+    const menuLogout = document.getElementById('menuLogout');
+
+    hamburger.addEventListener('click', () => {
+      const show = menuPanel.classList.toggle('show');
+      menuPanel.setAttribute('aria-hidden', !show);
+    });
+
+    // logout behavior (single place)
+    menuLogout.addEventListener('click', async (e) => {
+      e.preventDefault();
+      try {
+        localStorage.removeItem('role');
+        await fetch('/api/logout', { method: 'POST', credentials: 'include' });
+      } catch (err) {
+        console.error(err);
+      } finally {
+        window.location.href = '/';
+      }
+    });
+
+    // Show username / status if available
+    (async function fetchUser(){
+      try {
+        const res = await fetch('/api/me', { credentials: 'include' });
+        const data = await res.json();
+        if (data.ok && data.user) {
+          document.getElementById('username-display').textContent = `👋 ${data.user.username}`;
+          // set role locally if not set
+          if (!localStorage.getItem('role')) localStorage.setItem('role', data.user.role);
+        }
+      } catch (err) {
+        console.debug('No user data', err);
+      }
+    })();
+  </script>
+
+  <!-- Register SW fallback: helpful if firebase-config.js didn't register it -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistration('/firebase-messaging-sw.js').then(reg => {
+        if (!reg) {
+          navigator.serviceWorker.register('/firebase-messaging-sw.js')
+            .then(r => console.log('✅ FCM SW registered from privacy page:', r.scope))
+            .catch(err => console.warn('❌ SW register failed (privacy page):', err));
+        } else {
+          console.log('✅ FCM SW already registered (privacy page).');
+        }
+      }).catch(err => {
+        console.warn('SW check failed:', err);
+      });
+    }
+  </script>
 </body>
 </html>
