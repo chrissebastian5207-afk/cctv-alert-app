@@ -75,12 +75,42 @@
       padding: 12px 16px;
       display: flex;
       align-items: center;
-      justify-content: center;
+      justify-content: space-between;
       gap: 12px;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
     }
 
-    .logo-header img {
+    .hamburger-btn {
+      background: rgba(138, 43, 226, 0.2);
+      border: 1px solid rgba(138, 43, 226, 0.4);
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 24px;
+      color: #00e5ff;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      min-width: 44px;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .hamburger-btn:active {
+      transform: scale(0.95);
+      background: rgba(138, 43, 226, 0.4);
+    }
+
+    .logo-center {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .logo-center img {
       width: 48px;
       height: 48px;
       border-radius: 12px;
@@ -88,7 +118,7 @@
       border: 2px solid rgba(138, 43, 226, 0.3);
     }
 
-    .logo-header span {
+    .logo-center span {
       font-size: 18px;
       font-weight: 700;
       background: linear-gradient(135deg, #8a2be2, #00e5ff);
@@ -98,16 +128,62 @@
       letter-spacing: 0.5px;
     }
 
+    /* Hamburger Menu Dropdown */
+    .menu-dropdown {
+      position: fixed;
+      top: 72px;
+      left: 0;
+      right: 0;
+      background: linear-gradient(135deg, rgba(15, 23, 42, 0.98), rgba(10, 15, 30, 0.98));
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(138, 43, 226, 0.3);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+      transform: translateY(-100%);
+      opacity: 0;
+      transition: all 0.3s ease;
+      z-index: 999;
+      padding: 16px;
+    }
+
+    .menu-dropdown.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .menu-dropdown a {
+      display: block;
+      padding: 16px;
+      color: #e0e0e0;
+      text-decoration: none;
+      font-size: 16px;
+      font-weight: 600;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      transition: all 0.2s ease;
+    }
+
+    .menu-dropdown a:hover,
+    .menu-dropdown a:active {
+      background: rgba(138, 43, 226, 0.2);
+      border-color: rgba(138, 43, 226, 0.4);
+      transform: translateX(4px);
+    }
+
     @media (min-width: 768px) {
       .logo-header {
         padding: 16px 24px;
-        justify-content: flex-start;
       }
-      .logo-header img {
+      .logo-center {
+        position: static;
+        transform: none;
+      }
+      .logo-center img {
         width: 40px;
         height: 40px;
       }
-      .logo-header span {
+      .logo-center span {
         font-size: 16px;
       }
     }
