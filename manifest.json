@@ -3,9 +3,10 @@
   "short_name": "CCTV",
   "start_url": "/user",
   "display": "standalone",
-  "background_color": "#0e0e0e",
-  "theme_color": "#1f1f1f",
-  "description": "AI-powered CCTV monitoring and alert system with live notifications.",
+  "orientation": "portrait",
+  "background_color": "#000000",
+  "theme_color": "#8a2be2",
+  "description": "AI-powered CCTV monitoring and alert system with live notifications and real-time alerts.",
   "icons": [
     {
       "src": "/static/icons/icon-192x192.png",
