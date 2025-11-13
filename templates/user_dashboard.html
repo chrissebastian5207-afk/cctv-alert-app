@@ -1,406 +1,380 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+  <meta charset="utf-8">
+  <!-- PWA & Mobile safe meta -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover">
+  <meta name="theme-color" content="#0c0f15">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
   <title>User Dashboard | CCTV Alert System</title>
 
-  <!-- PWA & Theme -->
-  <meta name="theme-color" content="#8a2be2">
-  <meta name="background-color" content="#000000">
-  <meta name="mobile-web-app-capable" content="yes">
+  <!-- manifest & icons -->
   <link rel="manifest" href="/manifest.json">
-  <link rel="apple-touch-icon" href="/static/icons/icon-512x512.png">
+  <link rel="icon" sizes="192x192" href="/static/icons/icon-192x192.png">
+  <link rel="apple-touch-icon" sizes="512x512" href="/static/icons/icon-512x512.png">
 
-  <!-- Styles (keeps your existing variables & mobile-friendly overrides) -->
-  <link rel="stylesheet" href="/static/css/style.css" />
-  <link rel="icon" href="/static/icons/icon-192x192.png" />
+  <!-- main stylesheet -->
+  <link rel="stylesheet" href="/static/css/style.css">
 
-  <!-- Firebase config (kept at same path) -->
-  <script type="module" src="/static/js/firebase-config.js"></script>
+  <!-- firebase-config (root path as you requested) -->
+  <script type="module" src="/firebase-config.js"></script>
 
-  <!-- Inline small mobile fixes (keeps everything else in style.css) -->
+  <!-- socket.io client lib -->
+  <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
+
+  <!-- inline critical mobile-specific styles (keeps the main CSS in style.css) -->
   <style>
-    /* Small overrides so the header doesn't blind the content on mobile */
-    html, body { overflow-x: hidden; width: 100%; }
-    .appbar-inner { flex-wrap: wrap; gap: 10px; }
-    .brand img { width: 32px !important; height: 32px !important; }
-    .appbar-inner nav.row { order: 3; width: 100%; }
-    .appbar-inner .spacer { display: none; }
-    .appbar-inner #username-display,
-    .appbar-inner #connection-status,
-    .appbar-inner .btn { order: 4; }
-    .container { margin-top: 120px; padding: 12px; }
-    @media(min-width:768px) {
-      .container { margin-top: 90px; padding: 0 16px; }
-      .appbar-inner { flex-wrap: nowrap; }
-      .appbar-inner .spacer { display:block; }
+    /* small overrides for header/hamburger + layout safety */
+    :root { --accent: #8a2be2; --accent-2: #00e5ff; }
+    html,body{height:100%;margin:0;font-family: 'Segoe UI', Tahoma, Roboto, Arial; -webkit-font-smoothing:antialiased;}
+    body {
+      background: linear-gradient(160deg,#04070f,#0c1220);
+      color:#e6eef8;
+      overflow-x:hidden;
     }
-    /* Install button style */
-    #installAppBtn { display:none; margin: 14px auto; }
+
+    /* compact sticky header with hamburger (mobile-first) */
+    .logo-header {
+      position: sticky;
+      top: 0;
+      z-index: 1100;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:10px 16px;
+      background: linear-gradient(180deg, rgba(5,7,10,0.93), rgba(10,12,18,0.85));
+      backdrop-filter: blur(10px) saturate(1.1);
+      border-bottom:1px solid rgba(255,255,255,0.03);
+    }
+    .hamburger-btn {
+      position:absolute;
+      left:14px;
+      background:transparent;border:0;color:var(--accent-2);font-size:22px;padding:8px;cursor:pointer;border-radius:8px;
+    }
+    .hamburger-btn:active{transform:scale(.98)}
+    .logo-center{display:flex;align-items:center;gap:10px;justify-content:center}
+    .logo-center img{width:40px;height:40px;border-radius:8px;box-shadow:0 6px 18px rgba(138,43,226,.12);border:2px solid rgba(138,43,226,.08)}
+    .logo-center .title{font-weight:800;font-size:15px;background:linear-gradient(135deg,var(--accent),var(--accent-2));-webkit-background-clip:text;color:transparent}
+
+    .menu-dropdown{position:fixed;left:0;right:0;top:62px;z-index:1090;max-height:0;overflow:hidden;background:linear-gradient(180deg,rgba(6,8,12,.98),rgba(12,14,18,.98));backdrop-filter:blur(18px);border-bottom:1px solid rgba(138,43,226,.06);transition:max-height .28s ease;padding:0 12px}
+    .menu-dropdown.show{max-height:260px;padding:12px}
+    .menu-dropdown a{display:block;padding:12px 14px;border-radius:10px;text-decoration:none;color:#e8eef8;margin-bottom:8px;background:rgba(255,255,255,0.02);font-weight:700}
+    .menu-dropdown a:active{transform:scale(.99);background:rgba(138,43,226,.08)}
+
+    .container{max-width:1100px;margin:86px auto 48px;padding:12px;}
+    .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:14px;padding:16px;border:1px solid rgba(255,255,255,0.03);box-shadow:0 10px 30px rgba(0,0,0,.45)}
+    .card h2{margin:0 0 12px;font-weight:800;letter-spacing:.2px;font-size:20px}
+    .subtle{color:rgba(255,255,255,0.6);font-weight:600}
+
+    .controls{display:grid;grid-template-columns:1fr;gap:10px}
+    .input, .select{padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);background:rgba(0,0,0,0.15);color:#eaf2ff}
+    .btn{padding:10px 14px;border-radius:10px;border:0;cursor:pointer;font-weight:700}
+    .btn-secondary{background:rgba(255,255,255,0.03);color:#eaf2ff;border:1px solid rgba(255,255,255,0.04)}
+    .btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#081018}
+
+    #alerts-list{margin-top:8px}
+    .alert-card{background:transparent;border-radius:12px;padding:12px;margin:10px 0;border-left:4px solid rgba(255,255,255,0.04);display:flex;flex-direction:column;gap:6px}
+    .alert-card .row-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .alert-card .title{font-weight:800;font-size:15px}
+    .alert-card .message{color:rgba(255,255,255,0.85);font-size:14px;margin:0}
+    .alert-card .meta{color:rgba(255,255,255,0.55);font-size:12px}
+
+    .badge{display:inline-block;padding:4px 8px;border-radius:999px;font-weight:800;font-size:11px;color:#081018;background:linear-gradient(135deg,#f7c654,#ff8b60)}
+
+    @media(min-width:700px){
+      .container{margin-top:100px;padding:16px}
+      .controls{grid-template-columns:repeat(2,1fr)}
+      .menu-dropdown{left:14%;right:14%;top:72px;border-radius:12px}
+    }
+
+    a:focus, button:focus, .hamburger-btn:focus{outline:2px solid rgba(138,43,226,.18);outline-offset:2px}
   </style>
-
-  <!-- Verify role BEFORE rendering to avoid flicker -->
-  <script>
-    document.documentElement.style.visibility = "hidden";
-    async function verifyUser() {
-      try {
-        const savedRole = localStorage.getItem("role");
-        if (savedRole === "user") {
-          document.documentElement.style.visibility = "visible";
-          return;
-        }
-        const res = await fetch("/api/me", { credentials: "include" });
-        const data = await res.json();
-        if (data.ok) {
-          if (data.user.role === "admin") {
-            localStorage.setItem("role","admin");
-            window.location.href = "/admin";
-            return;
-          } else {
-            localStorage.setItem("role","user");
-            document.documentElement.style.visibility = "visible";
-            return;
-          }
-        } else {
-          localStorage.removeItem("role");
-          window.location.href = "/";
-        }
-      } catch (err) {
-        console.error("Verification failed:", err);
-        localStorage.removeItem("role");
-        window.location.href = "/";
-      }
-    }
-    verifyUser();
-  </script>
-
-  <!-- Theme load -->
-  <script>
-    const savedTheme = localStorage.getItem("theme") || "light";
-    document.documentElement.setAttribute("data-theme", savedTheme);
-  </script>
 </head>
-
 <body>
-  <!-- Appbar -->
-  <header class="appbar">
-    <div class="appbar-inner">
-      <div class="brand" style="display:flex;align-items:center;gap:10px">
-        <img src="/static/icons/icon-192x192.png" width="40" height="40" alt="CCTV icon" />
-        <div style="font-weight:700;">CCTV Alert System</div>
-      </div>
-
-      <nav class="row" aria-label="Main navigation">
-        <a class="link" href="/user">Live</a>
-        <a class="link" href="/settings">Settings</a>
-      </nav>
-
-      <div class="spacer"></div>
-
-      <div id="username-display" style="font-weight:600;color:var(--accent)"> </div>
-      <div class="small" id="connection-status">
-        <span class="status-dot is-offline"></span>Disconnected
-      </div>
-
-      <!-- Keep the logout here for desktop; we'll hide on mobile later with CSS if needed -->
-      <button id="topLogoutBtn" onclick="logout()" class="btn btn-secondary" title="Logout">Logout</button>
+  <!-- Header (hamburger only) -->
+  <header class="logo-header">
+    <button class="hamburger-btn" id="hamburgerBtn" aria-label="Open menu">☰</button>
+    <div class="logo-center" aria-hidden="false">
+      <img src="/static/icons/icon-192x192.png" alt="CCTV Alerts">
+      <div class="title">CCTV ALERTS</div>
     </div>
+    <div style="width:44px"></div>
   </header>
 
-  <!-- Install App Button (appears only when available) -->
-  <div style="text-align:center; margin-top:14px;">
-    <button id="installAppBtn" class="btn btn-primary">📲 Install CCTV App</button>
-  </div>
+  <!-- Dropdown menu -->
+  <nav id="menuDropdown" class="menu-dropdown" aria-hidden="true">
+    <a href="/user">🏠 Live Alerts</a>
+    <a href="/settings">⚙️ Settings</a>
+    <a href="/" onclick="logout(); return false;">🚪 Logout</a>
+  </nav>
 
-  <!-- Main container -->
-  <div class="container">
-    <!-- Card: Live Alerts header -->
-    <div class="card">
-      <div class="row" style="align-items:center">
-        <h2 style="margin:0">🚨 Live Alerts
+  <!-- Main content -->
+  <main class="container" role="main">
+    <!-- Live Alerts Card -->
+    <section class="card" id="liveCard">
+      <div style="display:flex;align-items:center;gap:12px">
+        <h2 style="flex:1">🚨 Live Alerts
           <span id="alert-count" class="badge" style="margin-left:8px;background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#081018">0</span>
         </h2>
-        <div class="spacer"></div>
-        <button id="sound-toggle" class="btn btn-secondary" title="Toggle sound">🔇</button>
-      </div>
-
-      <div class="hr"></div>
-
-      <div class="collapsible open" id="feed">
-        <div class="collapsible-head" onclick="toggleCollapsible('feed')">
-          <div class="row"><div class="small subtle">Live Feed</div></div>
-          <button class="btn btn-ghost" aria-label="Toggle feed">▾</button>
-        </div>
-
-        <div class="collapsible-body">
-          <div class="controls" style="margin-bottom:10px">
-            <input id="filter-key" class="input" type="search" placeholder="Search…" aria-label="Search alerts">
-            <select id="filter-priority" class="select" aria-label="Priority">
-              <option value="">All</option>
-              <option value="critical">Critical</option>
-              <option value="high">High</option>
-              <option value="medium">Medium</option>
-              <option value="low">Low</option>
-            </select>
-            <button class="btn btn-secondary" onclick="applyFilters()">Apply</button>
-            <button class="btn btn-ghost" onclick="resetFilters()">Reset</button>
-          </div>
-
-          <div id="alerts-list">
-            <div class="center subtle">
-              🔭 No alerts yet<br><small>You'll be notified when alerts are sent</small>
-            </div>
-          </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button id="sound-toggle" class="btn btn-secondary" title="Toggle sound">🔇</button>
         </div>
       </div>
-    </div>
 
-    <!-- Extra space for future widgets -->
-    <div id="extra-widgets"></div>
-  </div>
+      <div style="height:8px"></div>
 
-  <!-- Scripts: Socket.IO, socket logic, install handler -->
-  <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
+      <div class="controls" style="margin-bottom:10px">
+        <input id="filter-key" class="input" type="search" placeholder="Search…" aria-label="Search alerts">
+        <select id="filter-priority" class="select" aria-label="Priority">
+          <option value="">All</option>
+          <option value="critical">Critical</option>
+          <option value="high">High</option>
+          <option value="medium">Medium</option>
+          <option value="low">Low</option>
+        </select>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-secondary" onclick="applyFilters()">Apply</button>
+          <button class="btn btn-secondary" onclick="resetFilters()">Reset</button>
+        </div>
+      </div>
+
+      <div id="alerts-list" aria-live="polite">
+        <div style="text-align:center;color:rgba(255,255,255,0.55);padding:18px 0">
+          🔭 No alerts yet<br><small style="color:rgba(255,255,255,0.45)">You'll be notified when alerts are sent</small>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- load your socket wrapper (expects it to set global `socket`) -->
   <script src="/static/js/socket.js"></script>
-  <script src="/static/js/install.js"></script>
 
-  <!-- Register the FCM Service Worker (served by server at /firebase-messaging-sw.js) -->
+  <!-- Service worker registration & FCM token logic -->
   <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/firebase-messaging-sw.js')
-        .then(reg => console.log('✅ FCM Service Worker registered:', reg.scope))
-        .catch(err => console.error('❌ FCM registration failed:', err));
-    }
+    // Register service worker for FCM (root path)
+    (async function registerSWAndFCM() {
+      try {
+        if ('serviceWorker' in navigator) {
+          const reg = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+          console.log('✅ FCM Service Worker registered at', reg.scope);
+        } else {
+          console.warn('ServiceWorker not supported');
+        }
+      } catch (err) {
+        console.error('❌ FCM registration failed:', err);
+      }
+    })();
   </script>
 
-  <!-- Full client logic (keeps behavior identical to your prior code) -->
+  <!-- Full client logic: socket events, rendering, filters, sound, and FCM token saving -->
   <script>
-    /* ===========================
-       Dashboard client logic
-       - Socket handlers
-       - Alerts rendering
-       - Filters
-       - Sound toggle
-       - Logout
-       ============================ */
+    // Menu toggle
+    const hamburger = document.getElementById('hamburgerBtn');
+    const menu = document.getElementById('menuDropdown');
+    hamburger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      menu.classList.toggle('show');
+      menu.setAttribute('aria-hidden', menu.classList.contains('show') ? 'false' : 'true');
+    });
+    // close when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!menu.contains(e.target) && !hamburger.contains(e.target)) {
+        menu.classList.remove('show');
+        menu.setAttribute('aria-hidden','true');
+      }
+    });
 
-    // Elements
-    const usernameDisplay = document.getElementById("username-display");
-    const soundToggle = document.getElementById("sound-toggle");
-    const installBtn = document.getElementById("installAppBtn");
-
-    // state
+    // Audio toggle + generator
+    const soundToggle = document.getElementById('sound-toggle');
     let soundEnabled = false;
-    let ALL_ALERTS = [];
+    soundToggle.addEventListener('click', () => {
+      soundEnabled = !soundEnabled;
+      soundToggle.textContent = soundEnabled ? '🔊' : '🔇';
+      soundToggle.className = soundEnabled ? 'btn btn-primary' : 'btn btn-secondary';
+      if (soundEnabled) playAlertSound();
+    });
 
-    // helper: play small sound using WebAudio (user must enable)
     function playAlertSound() {
       if (!soundEnabled) return;
       try {
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.connect(gain); gain.connect(ctx.destination);
-        osc.type = 'sine';
-        osc.frequency.value = 900;
-        gain.gain.setValueAtTime(0.35, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.45);
-        osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.45);
-      } catch (err) {
-        console.error("Sound error:", err);
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        o.connect(g); g.connect(ctx.destination);
+        o.frequency.value = 900;
+        g.gain.setValueAtTime(0.25, ctx.currentTime);
+        o.start();
+        setTimeout(()=>{ g.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4); o.stop(ctx.currentTime + 0.45); }, 50);
+      } catch (err) { console.error('Audio error', err) }
+    }
+
+    // Data store
+    let ALL_ALERTS = [];
+
+    // Helper: escape
+    function escapeHtml(s = '') {
+      return String(s).replace(/[&<>"']/g, function(m){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]; });
+    }
+
+    // Render utilities
+    function addMinimalAlertCard(a) {
+      const alertsList = document.getElementById('alerts-list');
+
+      // clear "no alerts yet" placeholder if present
+      if (alertsList.children.length === 1 && alertsList.textContent.trim().startsWith('🔭')) {
+        alertsList.innerHTML = '';
       }
+
+      const card = document.createElement('div');
+      card.className = 'alert-card priority-' + ((a.priority || 'medium').toLowerCase());
+      card.innerHTML = `
+        <div class="row-top">
+          <div class="title">🚨 ${escapeHtml(a.title || 'Alert')}</div>
+          <div><span class="badge">${(a.priority || 'MEDIUM').toUpperCase()}</span></div>
+        </div>
+        <p class="message">${escapeHtml(a.message || '')}</p>
+        <div class="meta">📅 ${new Date(a.timestamp).toLocaleString()}</div>
+      `;
+      alertsList.insertBefore(card, alertsList.firstChild);
+      updateAlertCount();
     }
 
-    // Sound toggle UI
-    soundToggle.addEventListener("click", () => {
-      soundEnabled = !soundEnabled;
-      soundToggle.textContent = soundEnabled ? "🔊" : "🔇";
-      soundToggle.className = soundEnabled ? "btn btn-primary" : "btn btn-secondary";
-      if (soundEnabled) playAlertSound();
-    });
-
-    // Logout
-    async function logout() {
-      localStorage.removeItem("role");
-      try {
-        await fetch("/api/logout", { method: "POST", credentials: "include" });
-      } catch (err) { console.warn("Logout error:", err); }
-      window.location.href = "/";
-    }
-
-    // Render helpers
     function renderAlerts(list) {
-      const listEl = document.getElementById("alerts-list");
+      const alertsList = document.getElementById('alerts-list');
+      alertsList.innerHTML = '';
       if (!list || !list.length) {
-        listEl.innerHTML = `<div class="center subtle">🔭 No alerts yet<br><small>You'll be notified when alerts are sent</small></div>`;
+        alertsList.innerHTML = `<div style="text-align:center;color:rgba(255,255,255,0.55);padding:18px 0">🔭 No alerts yet<br><small style="color:rgba(255,255,255,0.45)">You'll be notified when alerts are sent</small></div>`;
         updateAlertCount();
         return;
       }
-      listEl.innerHTML = "";
-      list.forEach(a => createAlertCard(a));
-      updateAlertCount();
-    }
-
-    function createAlertCard(a) {
-      const list = document.getElementById("alerts-list");
-      const pr = (a.priority || "medium").toLowerCase();
-      const card = document.createElement("div");
-      card.className = `alert-card priority-${pr}`;
-      card.innerHTML = `
-        <div class="alert-header">
-          <div>🚨 ${escapeHtml(a.title || "Alert")}</div>
-          <span class="badge badge-${pr}">${(a.priority || "MEDIUM").toUpperCase()}</span>
-        </div>
-        <p>${escapeHtml(a.message || "")}</p>
-        <small>📅 ${new Date(a.timestamp).toLocaleString()}</small>
-      `;
-      list.insertBefore(card, list.firstChild);
-    }
-
-    // basic HTML escape
-    function escapeHtml(s) {
-      if (!s && s !== 0) return "";
-      return String(s).replace(/[&<>"']/g, (m) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-    }
-
-    // Filters
-    function applyFilters() {
-      const key = (document.getElementById("filter-key").value || "").toLowerCase();
-      const pr = (document.getElementById("filter-priority").value || "").toLowerCase();
-      document.querySelectorAll("#alerts-list .alert-card").forEach(card => {
-        const text = card.textContent.toLowerCase();
-        const badge = (card.querySelector("[class*='badge-']")?.className || "").toLowerCase();
-        const matchKey = key ? text.includes(key) : true;
-        const matchPr = pr ? badge.includes("badge-" + pr) : true;
-        card.style.display = (matchKey && matchPr) ? "" : "none";
-      });
-      updateAlertCount();
-    }
-
-    function resetFilters() {
-      document.getElementById("filter-key").value = "";
-      document.getElementById("filter-priority").value = "";
-      document.querySelectorAll("#alerts-list .alert-card").forEach(c => c.style.display = "");
-      updateAlertCount();
-    }
-
-    function toggleCollapsible(id) {
-      const el = document.getElementById(id);
-      if (!el) return;
-      el.classList.toggle("open");
+      // insert in order (most recent first)
+      list.forEach(a => addMinimalAlertCard(a));
     }
 
     function updateAlertCount() {
-      const count = document.querySelectorAll("#alerts-list .alert-card:not([style*='display: none'])").length;
-      document.getElementById("alert-count").textContent = count;
+      const count = document.querySelectorAll('#alerts-list .alert-card').length;
+      const el = document.getElementById('alert-count');
+      if (el) el.textContent = count;
     }
 
-    // Load initial alerts via API
-    async function loadInitialAlerts() {
+    function applyFilters() {
+      const key = (document.getElementById('filter-key').value || '').toLowerCase();
+      const pr = (document.getElementById('filter-priority').value || '').toLowerCase();
+      const filtered = ALL_ALERTS.filter(a => {
+        const text = ((a.title||'') + ' ' + (a.message||'')).toLowerCase();
+        const matchKey = key ? text.includes(key) : true;
+        const matchPr = pr ? (a.priority||'').toLowerCase() === pr : true;
+        return matchKey && matchPr;
+      });
+      renderAlerts(filtered);
+    }
+
+    function resetFilters() {
+      document.getElementById('filter-key').value = '';
+      document.getElementById('filter-priority').value = '';
+      renderAlerts(ALL_ALERTS);
+    }
+
+    // Logout function (keeps same endpoint)
+    async function logout() {
+      localStorage.removeItem('role');
       try {
-        const res = await fetch("/api/alerts", { credentials: "include" });
+        await fetch('/api/logout', { method: 'POST', credentials: 'include' });
+      } catch (e) { /* ignore */ }
+      window.location.href = '/';
+    }
+
+    // Socket handling (this relies on your /static/js/socket.js exposing a global `socket`)
+    if (typeof socket !== 'undefined') {
+      socket.on('connect', () => {
+        console.info('✅ User dashboard connected to Socket.IO');
+        // ask server for history if your socket.js expects this event
+        try { socket.emit('userConnected'); } catch (e) {}
+      });
+
+      socket.on('disconnect', (reason) => {
+        console.info('❌ User dashboard disconnected from Socket.IO', reason);
+      });
+
+      socket.on('alertHistory', (alerts) => {
+        try {
+          // server may send reverse or normal order; keep consistent by using as-is but render most recent first
+          if (Array.isArray(alerts)) {
+            // if alerts are saved in chronological order, reverse to show latest first
+            ALL_ALERTS = alerts.slice();
+            // prefer to show latest first:
+            if (ALL_ALERTS.length && new Date(ALL_ALERTS[0].timestamp) < new Date(ALL_ALERTS[ALL_ALERTS.length-1].timestamp)) {
+              ALL_ALERTS.reverse();
+            }
+          } else {
+            ALL_ALERTS = [];
+          }
+          renderAlerts(ALL_ALERTS);
+        } catch (err) { console.error('alertHistory error', err); }
+      });
+
+      socket.on('newAlert', (alert) => {
+        try {
+          if (!alert) return;
+          // dedupe if id present
+          if (alert.id) {
+            if (ALL_ALERTS.some(a => a.id === alert.id)) return;
+          }
+          ALL_ALERTS.unshift(alert);
+          addMinimalAlertCard(alert);
+          if (soundEnabled) playAlertSound();
+        } catch (err) { console.error('newAlert handling error', err); }
+      });
+
+    } else {
+      console.warn('socket variable not found. Ensure /static/js/socket.js is loaded and sets `socket` globally.');
+    }
+
+    // Fallback initial load via REST API (in case socket didn't supply history)
+    window.addEventListener('DOMContentLoaded', async () => {
+      try {
+        const res = await fetch('/api/alerts', { credentials: 'include' });
         const data = await res.json();
         if (data.ok && Array.isArray(data.alerts)) {
           ALL_ALERTS = data.alerts;
           renderAlerts(ALL_ALERTS);
-        } else {
-          renderAlerts([]);
         }
       } catch (err) {
-        console.error("Failed to load initial alerts:", err);
+        console.warn('Could not fetch initial alerts via API (socket will still work).', err);
       }
-    }
-
-    // Socket events (relies on /static/js/socket.js creating global `socket`)
-    // we assume socket.js does io(...) and sets window.socket; keep defensive checks
-    if (typeof socket !== "undefined") {
-      setupSocketHandlers();
-    } else {
-      // If socket not loaded yet, poll for it
-      let sockInterval = setInterval(() => {
-        if (typeof socket !== "undefined") {
-          clearInterval(sockInterval);
-          setupSocketHandlers();
-        }
-      }, 150);
-    }
-
-    function setupSocketHandlers() {
-      try {
-        socket.on("connect", async () => {
-          document.getElementById("connection-status").innerHTML = '<span class="status-dot is-online"></span>Connected';
-          try {
-            const res = await fetch("/api/me", { credentials: "include" });
-            const data = await res.json();
-            if (data.ok) usernameDisplay.textContent = `👋 ${data.user.username}`;
-          } catch (err) { console.error("Error fetching user:", err); }
-        });
-
-        socket.on("disconnect", () => {
-          document.getElementById("connection-status").innerHTML = '<span class="status-dot is-offline"></span>Disconnected';
-        });
-
-        socket.on("alertHistory", (alerts) => {
-          if (!alerts?.length) return;
-          const seen = new Set();
-          ALL_ALERTS = [...alerts, ...ALL_ALERTS].filter(a => {
-            if (seen.has(a.id)) return false;
-            seen.add(a.id);
-            return true;
-          });
-          renderAlerts(ALL_ALERTS);
-        });
-
-        socket.on("newAlert", (alert) => {
-          console.log("🚨 NEW ALERT RECEIVED:", alert);
-          ALL_ALERTS.unshift(alert);
-          createAlertCard(alert);
-          playAlertSound();
-          updateAlertCount();
-        });
-
-        // If your socket.js emits a connection confirmation event, handle it
-        socket.on("connectionConfirmed", (data) => {
-          console.log("✅ Server confirmed connection:", data);
-        });
-
-        // Request history once connected (some clients call userConnected)
-        socket.emit && socket.emit("userConnected");
-      } catch (err) {
-        console.error("Socket setup error:", err);
-      }
-    }
-
-    // basic DOM loaded actions
-    window.addEventListener("DOMContentLoaded", async () => {
-      await loadInitialAlerts();
     });
 
-    // =======================
-    // PWA install prompt handling (install.js also handles, but ensure fallback)
-    // =======================
-    // install.js registers beforeinstallprompt and toggles #installAppBtn visibility.
-    // Provide a fallback if install.js isn't loaded: show native prompt when available.
-    (function installButtonFallback() {
-      if (!installBtn) return;
-      installBtn.addEventListener('click', async () => {
-        // install.js manages deferredPrompt; if not available, just hide button gracefully
-        try {
-          if (window.deferredPrompt) {
-            window.deferredPrompt.prompt();
-            const { outcome } = await window.deferredPrompt.userChoice;
-            console.log('PWA install outcome:', outcome);
-            window.deferredPrompt = null;
-          } else {
-            // No deferred prompt available (browser may not support or already installed)
-            alert('Install prompt not available. Use your browser / share menu to add to home screen.');
-          }
-        } catch (e) {
-          console.warn('Install prompt error', e);
-        }
-      });
-    })();
+    /***********************
+     * FCM token / permission helper
+     *
+     * This code assumes your /firebase-config.js (root) initializes Firebase messaging
+     * and exposes logic to request permission and obtain a token (modular SDK).
+     * If you used the earlier modular code snippet in the project, please ensure
+     * it calls a window-level function or handles sending the token to /api/save-fcm-token itself.
+     *
+     * We include a fallback helper to post a token to your server endpoint here.
+     ***********************/
+    async function saveFcmTokenToServer(token) {
+      try {
+        const resp = await fetch('/api/save-fcm-token', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ token })
+        });
+        if (resp.ok) console.log('📱 Token sent to server successfully!');
+        else console.warn('⚠️ Failed to send token to server:', resp.status);
+      } catch (err) {
+        console.error('❌ Error sending token to server:', err);
+      }
+    }
+
+    // If your firebase-config.js exposes a function to register and return a token, call it:
+    // e.g. window.requestFcmToken().then(token => saveFcmTokenToServer(token)).catch(...)
+    // If firebase-config.js already posts token to server, no need to run anything here.
 
   </script>
 </body>

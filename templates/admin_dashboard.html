@@ -2,559 +2,502 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <!-- ✅ Mobile Safe & Theme Meta Tags -->
+  <!-- Mobile safe -->
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover">
   <meta name="theme-color" content="#0c0f15">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <!-- ✅ PWA + Mobile App Meta -->
-<meta name="theme-color" content="#1f1f1f">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<link rel="manifest" href="/manifest.json">
-<link rel="icon" sizes="192x192" href="/static/icons/icon-192x192.png">
-<link rel="apple-touch-icon" sizes="512x512" href="/static/icons/icon-512x512.png">
 
+  <!-- PWA manifest / icons (single manifest link only) -->
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" sizes="192x192" href="/static/icons/icon-192x192.png">
+  <link rel="apple-touch-icon" sizes="512x512" href="/static/icons/icon-512x512.png">
 
   <title>Admin Dashboard | CCTV Alert System</title>
 
-  <!-- ✅ Static Assets -->
+  <!-- Main CSS -->
   <link rel="stylesheet" href="/static/css/style.css">
-  <link rel="icon" href="/static/icons/icon-192.png">
-  <link rel="manifest" href="/manifest.json">
 
-  <!-- ✅ Socket.io & Firebase -->
+  <!-- Socket.IO client -->
   <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
+
+  <!-- NOTE: your firebase-config.js is intentionally at root (/firebase-config.js) per your request -->
   <script type="module" src="/firebase-config.js"></script>
 
-  <!-- ✅ Verify Admin -->
-  <script>
-    document.documentElement.style.visibility = "hidden";
-    async function verifyAdmin() {
-      try {
-        const savedRole = localStorage.getItem("role");
-        if (savedRole === "admin") {
-          document.documentElement.style.visibility = "visible";
-          return;
-        }
-        const res = await fetch("/api/me", { credentials: "include" });
-        const data = await res.json();
-        if (data.ok && data.user.role === "admin") {
-          localStorage.setItem("role", "admin");
-          document.documentElement.style.visibility = "visible";
-        } else {
-          localStorage.removeItem("role");
-          window.location.href = "/user";
-        }
-      } catch (err) {
-        console.error("Admin verification failed:", err);
-        localStorage.removeItem("role");
-        window.location.href = "/";
-      }
-    }
-    verifyAdmin();
-  </script>
-
-  <!-- ✅ Theme -->
-  <script>
-    const savedTheme = localStorage.getItem("theme") || "light";
-    document.documentElement.setAttribute("data-theme", savedTheme);
-  </script>
-
   <style>
-    /* ✅ MOBILE RESPONSIVE - NO APPBAR */
+    /* Minimal inline adjustments to ensure appbar + mobile header behaves cleanly
+       Most theme lives in /static/css/style.css. These keep the appbar compact and the hamburger clean. */
+    :root { --accent: #8a2be2; --accent-2: #00e5ff; }
+
     body {
       margin: 0;
-      padding: 0;
-      overflow-x: hidden;
+      font-family: "Segoe UI", Roboto, system-ui, -apple-system, "Helvetica Neue", Arial;
       background: linear-gradient(160deg, #04070f, #0c1220);
-      color: #e0e0e0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: #e6eef5;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      overflow-x: hidden;
     }
 
-    /* ✅ Compact Logo Header with Hamburger */
+    /* Compact header with centered logo + hamburger on left */
     .logo-header {
       position: sticky;
       top: 0;
-      z-index: 1000;
-      background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(10, 15, 30, 0.95));
-      backdrop-filter: blur(15px);
-      border-bottom: 1px solid rgba(138, 43, 226, 0.3);
-      padding: 10px 16px;
+      z-index: 1100;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 12px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-      position: relative;
+      padding: env(safe-area-inset-top, 10px) 16px 10px 16px;
+      background: linear-gradient(180deg, rgba(8,10,14,0.95), rgba(12,16,22,0.9));
+      backdrop-filter: blur(10px) saturate(1.1);
+      border-bottom: 1px solid rgba(255,255,255,0.03);
+    }
+
+    .logo-left {
+      position: absolute;
+      left: 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
 
     .hamburger-btn {
-      position: absolute;
-      left: 16px;
       background: transparent;
       border: none;
+      color: var(--accent-2);
+      font-size: 22px;
       padding: 8px;
-      font-size: 24px;
-      color: #00e5ff;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      min-width: 40px;
-      min-height: 40px;
-      display: flex;
+      display: inline-flex;
       align-items: center;
       justify-content: center;
+      cursor: pointer;
       border-radius: 8px;
     }
 
-    .hamburger-btn:active {
-      transform: scale(0.9);
-      background: rgba(138, 43, 226, 0.2);
-    }
+    .hamburger-btn:active { transform: scale(0.98); }
 
     .logo-center {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
+      justify-content: center;
     }
 
     .logo-center img {
       width: 40px;
       height: 40px;
-      border-radius: 10px;
-      box-shadow: 0 0 15px rgba(138, 43, 226, 0.4);
-      border: 2px solid rgba(138, 43, 226, 0.3);
+      border-radius: 8px;
+      box-shadow: 0 6px 20px rgba(138,43,226,0.15);
+      border: 2px solid rgba(138,43,226,0.08);
+      background: #fff;
     }
 
-    .logo-center span {
-      font-size: 16px;
-      font-weight: 700;
-      background: linear-gradient(135deg, #8a2be2, #00e5ff);
+    .logo-center .title {
+      font-weight: 800;
+      font-size: 15px;
+      letter-spacing: 0.6px;
+      background: linear-gradient(90deg,var(--accent),var(--accent-2));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      background-clip: text;
-      letter-spacing: 0.5px;
     }
 
-    /* Hamburger Menu Dropdown */
+    /* Slide-down menu dropdown */
     .menu-dropdown {
       position: fixed;
-      top: 60px;
+      top: 64px;
       left: 0;
       right: 0;
-      background: linear-gradient(135deg, rgba(15, 23, 42, 0.98), rgba(10, 15, 30, 0.98));
-      backdrop-filter: blur(20px);
-      border-bottom: 1px solid rgba(138, 43, 226, 0.3);
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+      z-index: 1080;
+      background: linear-gradient(180deg, rgba(7,9,12,0.98), rgba(16,18,22,0.98));
+      border-bottom: 1px solid rgba(138,43,226,0.06);
+      box-shadow: 0 8px 40px rgba(0,0,0,0.55);
       max-height: 0;
       overflow: hidden;
-      transition: max-height 0.3s ease;
-      z-index: 999;
+      transition: max-height 260ms ease, padding 260ms ease;
     }
 
-    .menu-dropdown.show {
-      max-height: 300px;
-      padding: 12px 16px;
-    }
+    .menu-dropdown.show { max-height: 280px; padding: 12px 16px; }
 
     .menu-dropdown a {
       display: block;
-      padding: 14px;
-      color: #e0e0e0;
+      padding: 12px 14px;
+      color: #e6eef5;
       text-decoration: none;
-      font-size: 15px;
-      font-weight: 600;
-      border-radius: 8px;
-      margin-bottom: 6px;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      transition: all 0.2s ease;
+      border-radius: 10px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.02);
     }
 
-    .menu-dropdown a:active {
-      background: rgba(138, 43, 226, 0.3);
-      border-color: rgba(138, 43, 226, 0.5);
-      transform: scale(0.98);
+    .menu-dropdown a:hover {
+      background: linear-gradient(90deg, rgba(138,43,226,0.12), rgba(0,229,255,0.06));
     }
 
-    @media (min-width: 768px) {
-      .logo-header {
-        padding: 12px 24px;
-        justify-content: flex-start;
-      }
-      .hamburger-btn {
-        position: static;
-      }
-      .logo-center img {
-        width: 36px;
-        height: 36px;
-      }
-      .logo-center span {
-        font-size: 15px;
-      }
-    }
-
+    /* Container & cards */
     .container {
-      padding: 16px;
       max-width: 1200px;
-      margin: 0 auto;
-    }
-
-    @media (min-width: 768px) {
-      .container {
-        padding: 24px;
-      }
-    }
-
-    .stats {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 12px;
-      margin-bottom: 16px;
-    }
-
-    .stat {
+      margin: 92px auto 40px;
       padding: 16px;
-      text-align: center;
-    }
-
-    .kpi {
-      font-size: 24px;
     }
 
     .card {
-      padding: 16px;
-      margin-bottom: 16px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.03);
+      border-radius: 14px;
+      padding: 18px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.45);
     }
 
-    .card h2 {
-      font-size: 18px;
-      margin-bottom: 12px;
-    }
+    .small { color: rgba(230,238,245,0.72); }
+    .subtle { color: rgba(230,238,245,0.6); }
 
-    .alert-buttons {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 10px;
-      margin-top: 12px;
-    }
+    /* Alert buttons grid */
+    .alert-buttons { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap: 12px; }
 
     .alert-btn {
-      padding: 16px 12px;
-      font-size: 13px;
-      min-height: 48px;
-      white-space: normal;
-      word-wrap: break-word;
+      padding: 18px;
+      border-radius: 12px;
+      color: white;
+      font-weight: 800;
+      letter-spacing: 0.6px;
+      border: none;
+      cursor: pointer;
+      min-height: 54px;
+      text-align: center;
     }
 
-    .controls {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 10px;
-      margin-bottom: 10px;
-    }
-
-    .input, .select {
-      width: 100%;
-      min-height: 44px;
-      font-size: 16px;
-      padding: 12px;
-    }
-
-    .btn, button {
-      min-height: 44px;
-      padding: 10px 16px;
-      font-size: 14px;
-    }
-
-    .alert-card {
-      padding: 12px;
-      margin: 8px 0;
-    }
-
-    .alert-header {
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-
-    .alert-header > strong {
-      flex: 1;
-      min-width: 0;
-      word-break: break-word;
-    }
-
-    .badge {
-      flex-shrink: 0;
-      white-space: nowrap;
-    }
-
-    .collapsible-head {
-      padding: 12px 0;
-    }
-
-    .collapsible-body {
-      padding: 0;
-    }
-
-    #customModal {
-      padding: 16px;
-    }
-
-    #customModal .card {
-      width: 100%;
-      max-width: 520px;
-      max-height: 90vh;
-      overflow-y: auto;
-    }
-
-    @media (min-width: 480px) {
-      .stats {
-        grid-template-columns: repeat(2, 1fr);
-      }
-      .alert-buttons {
-        grid-template-columns: repeat(2, 1fr);
-      }
-      .controls {
-        grid-template-columns: repeat(2, 1fr);
-      }
-    }
-
-    @media (min-width: 768px) {
-      .container {
-        padding: 24px;
-      }
-      .stats {
-        grid-template-columns: repeat(3, 1fr);
-      }
-      .card {
-        padding: 20px;
-      }
-      .card h2 {
-        font-size: 22px;
-      }
-      .alert-buttons {
-        grid-template-columns: repeat(3, 1fr);
-      }
-      .controls {
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      }
-    }
-
-    @media (min-width: 1024px) {
-      .alert-buttons {
-        grid-template-columns: repeat(4, 1fr);
-      }
-    }
-
-    @media (hover: none) and (pointer: coarse) {
-      .btn, .alert-btn, button {
-        min-height: 48px;
-        min-width: 48px;
-      }
-      .input, .select {
-        min-height: 48px;
-      }
+    /* Responsive small screens adjustments */
+    @media (max-width: 720px) {
+      .container { margin-top: 84px; padding: 12px; }
+      .logo-center img { width: 36px; height: 36px; }
+      .logo-center .title { font-size: 13px; }
     }
   </style>
 </head>
 
 <body>
-  <!-- ✅ Compact Logo Header with Visible Hamburger -->
-  <header class="logo-header">
-    <button class="hamburger-btn" onclick="toggleMenu()" aria-label="Menu">☰</button>
-    <div class="logo-center">
-      <img src="/static/icons/icon-192.png" alt="CCTV Alert">
-      <span>CCTV ALERTS</span>
+  <!-- Compact header (logo centered, hamburger left) -->
+  <header class="logo-header" role="banner" aria-label="CCTV header">
+    <div class="logo-left">
+      <button class="hamburger-btn" id="hamburgerBtn" aria-label="Open menu">☰</button>
+    </div>
+
+    <div class="logo-center" aria-hidden="false">
+      <img src="/static/icons/icon-192x192.png" alt="CCTV logo">
+      <div class="title">CCTV ALERTS</div>
     </div>
   </header>
 
-  <!-- ✅ Hamburger Menu Dropdown -->
-  <nav id="menuDropdown" class="menu-dropdown">
+  <!-- Hamburger menu (contains logout + links) -->
+  <nav id="menuDropdown" class="menu-dropdown" aria-hidden="true">
     <a href="/admin">📊 Dashboard</a>
     <a href="/settings">⚙️ Settings</a>
-    <a href="/" onclick="logout(); return false;">🚪 Logout</a>
+    <a href="/" id="menuLogout">🚪 Logout</a>
   </nav>
 
-  <!-- ✅ Main Content -->
-  <div class="container">
-    <!-- Stats -->
-    <section class="stats" id="stats-bar">
-      <div class="stat">
-        <div class="small">Alerts Today</div>
-        <div class="kpi" id="stat-alerts-today">—</div>
-      </div>
-      <div class="stat">
-        <div class="small">Critical Count</div>
-        <div class="kpi" id="stat-critical">—</div>
-      </div>
-      <div class="stat">
-        <div class="small">Last Sent</div>
-        <div class="kpi small" id="stat-last">—</div>
+  <!-- Main content -->
+  <main class="container" role="main">
+    <!-- Stats row -->
+    <section class="card" id="statsCard" aria-labelledby="statsHeading" style="margin-bottom:16px;">
+      <h3 id="statsHeading" style="margin:0 0 8px 0; font-size:18px;">System Stats</h3>
+      <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px;">
+        <div style="padding:12px; border-radius:10px; background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.02));">
+          <div class="small">Alerts Today</div>
+          <div id="stat-alerts-today" style="font-weight:800; font-size:20px; margin-top:8px;">—</div>
+        </div>
+        <div style="padding:12px; border-radius:10px; background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.02));">
+          <div class="small">Critical Count</div>
+          <div id="stat-critical" style="font-weight:800; font-size:20px; margin-top:8px;">—</div>
+        </div>
+        <div style="padding:12px; border-radius:10px; background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.02));">
+          <div class="small">Last Sent</div>
+          <div id="stat-last" style="font-weight:700; font-size:14px; margin-top:8px;">—</div>
+        </div>
       </div>
     </section>
 
-    <!-- Send Alert -->
-    <div class="card">
-      <h2>🚨 Send Alert</h2>
-      <p class="subtle small">Choose a quick action or create a custom alert.</p>
-      <div class="alert-buttons">
-        <button class="alert-btn btn-fire" onclick="sendAlert('Fire','🔥 FIRE ALERT! Evacuate immediately!','Critical')">🔥 FIRE ALERT</button>
-        <button class="alert-btn btn-security" onclick="sendAlert('Security Breach','⚠️ Security breach detected. Stay alert!','High')">⚠️ SECURITY BREACH</button>
-        <button class="alert-btn btn-medical" onclick="sendAlert('Medical Emergency','🚑 Medical emergency. Assistance needed!','Critical')">🚑 MEDICAL EMERGENCY</button>
-        <button class="alert-btn btn-intruder" onclick="sendAlert('Intruder Alert','👁️ Intruder detected on premises!','High')">👁️ INTRUDER ALERT</button>
-        <button class="alert-btn btn-lockdown" onclick="sendAlert('Lockdown','🔒 LOCKDOWN initiated. Secure all doors!','Critical')">🔒 LOCKDOWN</button>
-        <button class="alert-btn btn-evacuation" onclick="sendAlert('Evacuation','🚪 EVACUATION order. Leave building now!','Critical')">🚪 EVACUATION</button>
-        <button class="alert-btn btn-custom" onclick="showCustomAlert()">✏️ CUSTOM ALERT</button>
+    <!-- Quick send card -->
+    <section class="card" aria-labelledby="sendHeading" style="margin-bottom:18px;">
+      <div style="display:flex; align-items:center; gap:12px; justify-content:space-between;">
+        <h2 id="sendHeading" style="margin:0; font-size:20px;">🚨 Send Alert</h2>
+        <div class="subtle small">Quick actions + custom alerts</div>
       </div>
-      <p id="alertMsg" class="message"></p>
-    </div>
 
-    <!-- Custom Alert Modal -->
-    <div id="customModal" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1200;display:flex;align-items:center;justify-content:center;">
-      <div class="card">
-        <h2>✏️ Custom Alert</h2>
+      <p class="small subtle" style="margin-top:8px;">Choose a quick action or create a custom alert.</p>
+
+      <div class="alert-buttons" style="margin-top:12px;">
+        <button class="alert-btn" style="background:linear-gradient(90deg,#ff6b6b,#ff4757);" onclick="sendAlert('Fire','🔥 FIRE ALERT! Evacuate immediately!','Critical')">🔥 FIRE ALERT</button>
+        <button class="alert-btn" style="background:linear-gradient(90deg,#ffb86b,#ff8b60);" onclick="sendAlert('Security Breach','⚠️ Security breach detected. Stay alert!','High')">⚠️ SECURITY</button>
+        <button class="alert-btn" style="background:linear-gradient(90deg,#ff7bd1,#ff4fa8);" onclick="sendAlert('Medical Emergency','🚑 Medical emergency. Assistance needed!','Critical')">🚑 MEDICAL</button>
+        <button class="alert-btn" style="background:linear-gradient(90deg,#6f42c1,#341f97);" onclick="sendAlert('Intruder Alert','👁️ Intruder detected on premises!','High')">👁️ INTRUDER</button>
+        <button class="alert-btn" style="background:linear-gradient(90deg,#3a3b3c,#111);" onclick="sendAlert('Lockdown','🔒 LOCKDOWN initiated. Secure all doors!','Critical')">🔒 LOCKDOWN</button>
+        <button class="alert-btn" style="background:linear-gradient(90deg,#00c27a,#00b894);" onclick="sendAlert('Evacuation','🚪 EVACUATION order. Leave building now!','Critical')">🚪 EVACUATE</button>
+        <button class="alert-btn" style="background:linear-gradient(90deg,#0984e3,#74b9ff);" onclick="showCustomAlert()">✏️ CUSTOM</button>
+      </div>
+
+      <p id="alertMsg" class="message" style="margin-top:12px;"></p>
+    </section>
+
+    <!-- Custom modal (hidden by default) -->
+    <div id="customModal" class="hidden" style="position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:1200;">
+      <div style="background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.015)); border-radius:12px; padding:18px; width:92%; max-width:560px;">
+        <h3 style="margin:0 0 10px 0;">✏️ Custom Alert</h3>
         <form id="customAlertForm">
-          <div class="row">
-            <input id="customTitle" class="input" type="text" placeholder="Alert Title" required>
-          </div>
-          <div class="row" style="margin-top:8px">
-            <textarea id="customMessage" class="input" placeholder="Alert Message" rows="4" required></textarea>
-          </div>
-          <div class="row" style="margin-top:8px">
-            <select id="customPriority" class="select">
-              <option value="Low">Low Priority</option>
-              <option value="Medium">Medium Priority</option>
-              <option value="High">High Priority</option>
-              <option value="Critical">Critical Priority</option>
+          <div style="display:grid; gap:8px;">
+            <input id="customTitle" class="input" type="text" placeholder="Alert Title" required style="padding:10px; border-radius:8px; border:1px solid rgba(255,255,255,0.03);">
+            <textarea id="customMessage" class="input" rows="4" placeholder="Alert Message" required style="padding:10px; border-radius:8px; border:1px solid rgba(255,255,255,0.03);"></textarea>
+            <select id="customPriority" class="select" style="padding:10px; border-radius:8px; border:1px solid rgba(255,255,255,0.03);">
+              <option>Low</option><option>Medium</option><option>High</option><option>Critical</option>
             </select>
-          </div>
-          <div class="row" style="margin-top:12px; justify-content: flex-end;">
-            <button type="button" class="btn btn-ghost" onclick="closeCustomModal()">Cancel</button>
-            <button type="submit" class="btn btn-primary">Send Alert</button>
+            <div style="display:flex; gap:8px; justify-content:flex-end;">
+              <button type="button" class="btn btn-ghost" onclick="closeCustomModal()">Cancel</button>
+              <button type="submit" class="btn btn-primary">Send</button>
+            </div>
           </div>
         </form>
       </div>
     </div>
 
-    <!-- Alert History -->
-    <section class="card">
-      <div class="collapsible open" id="history-wrap">
-        <div class="collapsible-head" onclick="toggleCollapsible('history-wrap')">
-          <div class="row">
-            <h2 style="margin:0">📋 Alert History</h2>
-            <span class="subtle small">Show / Hide</span>
-          </div>
-          <button class="btn btn-ghost" aria-label="Toggle history">▾</button>
-        </div>
-        <div class="collapsible-body">
-          <div class="controls">
-            <input id="filter-key" class="input" type="search" placeholder="Search text...">
-            <input id="filter-from-date" class="input" type="date">
-            <input id="filter-to-date" class="input" type="date">
-            <select id="filter-priority" class="select">
+    <!-- Alert history -->
+    <section class="card" id="historyCard">
+      <div style="display:flex; align-items:center; justify-content:space-between;">
+        <h2 style="margin:0">📋 Alert History</h2>
+        <button class="btn btn-ghost" onclick="toggleCollapsible('history-wrap')">▾</button>
+      </div>
+
+      <div id="history-wrap" class="collapsible open" style="margin-top:12px;">
+        <div class="collapsible-head" style="padding:0;">
+          <div class="controls" style="margin-bottom:12px;">
+            <input id="filter-key" class="input" type="search" placeholder="Search text..." style="flex:1; padding:10px; border-radius:8px;">
+            <select id="filter-priority" class="select" style="min-width:160px; margin-left:8px; padding:10px; border-radius:8px;">
               <option value="">All Priorities</option>
               <option value="critical">Critical</option>
               <option value="high">High</option>
               <option value="medium">Medium</option>
               <option value="low">Low</option>
             </select>
-            <button class="btn btn-secondary" onclick="applyFilters()">Apply</button>
-            <button class="btn btn-ghost" onclick="resetFilters()">Reset</button>
+            <div style="margin-left:8px;">
+              <button class="btn btn-secondary" onclick="applyFilters()">Apply</button>
+              <button class="btn btn-ghost" onclick="resetFilters()">Reset</button>
+            </div>
           </div>
-          <div id="alerts-list"><p class="subtle">Loading alerts...</p></div>
+        </div>
+
+        <div class="collapsible-body" style="display:block;">
+          <div id="alerts-list">
+            <p class="subtle">Loading alerts...</p>
+          </div>
         </div>
       </div>
     </section>
-  </div>
+  </main>
 
-  <!-- ✅ Socket.IO -->
+  <!-- Socket client wrapper script (uses /static/js/socket.js that you have) -->
   <script src="/static/js/socket.js"></script>
 
-  <!-- ✅ Dashboard Logic -->
+  <!-- Main dashboard JS -->
   <script>
+    // Keep consistent variable names; straightforward logic matches your server endpoints.
     let ALL_ALERTS = [];
 
-    // 🍔 Toggle hamburger menu
-    function toggleMenu() {
-      const menu = document.getElementById('menuDropdown');
-      menu.classList.toggle('show');
-    }
-
+    // Hamburger toggle
+    const hamburgerBtn = document.getElementById('hamburgerBtn');
+    const menuDropdown = document.getElementById('menuDropdown');
+    hamburgerBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      menuDropdown.classList.toggle('show');
+      menuDropdown.setAttribute('aria-hidden', menuDropdown.classList.contains('show') ? 'false' : 'true');
+    });
     // Close menu when clicking outside
     document.addEventListener('click', (e) => {
-      const menu = document.getElementById('menuDropdown');
-      const hamburger = document.querySelector('.hamburger-btn');
-      if (menu.classList.contains('show') && !menu.contains(e.target) && !hamburger.contains(e.target)) {
-        menu.classList.remove('show');
+      if (menuDropdown.classList.contains('show') && !menuDropdown.contains(e.target) && e.target !== hamburgerBtn) {
+        menuDropdown.classList.remove('show');
+        menuDropdown.setAttribute('aria-hidden','true');
       }
     });
 
-    // 🔌 Socket events
-    socket.on('connect', async () => {
+    // Attach logout action inside menu
+    document.getElementById('menuLogout').addEventListener('click', async (ev) => {
+      ev.preventDefault();
+      await logout();
+    });
+
+    // Socket events (socket from /static/js/socket.js expects window.socket to be available)
+    // Note: your socket.js typically exposes `socket` or sets window.socket; ensure it does.
+    // On connect - we only log, alerts come from 'alertHistory' and 'newAlert'
+    socket.on('connect', () => {
       console.log('✅ Admin dashboard connected to Socket.IO');
+      // Ask for alert history (some clients emit userConnected to request it)
+      try { socket.emit('userConnected'); } catch(e){ /* ignore */ }
     });
 
-    socket.on('disconnect', () => {
-      console.log('❌ Admin dashboard disconnected from Socket.IO');
+    socket.on('disconnect', (reason) => {
+      console.warn('❌ Admin dashboard disconnected from Socket.IO', reason);
     });
 
-    // 🔒 Logout function
+    // Receive history
+    socket.on('alertHistory', (alerts) => {
+      if (!Array.isArray(alerts)) return;
+      ALL_ALERTS = alerts.slice();
+      renderAlerts(ALL_ALERTS);
+      updateStats(ALL_ALERTS);
+    });
+
+    // Live alerts
+    socket.on('newAlert', (alert) => {
+      console.log('🚨 NEW ALERT RECEIVED:', alert);
+      ALL_ALERTS.unshift(alert);
+      displayAlert(alert);
+      updateStats(ALL_ALERTS);
+    });
+
+    // Basic API functions
     async function logout() {
-      localStorage.removeItem("role");
-      await fetch('/api/logout', { method: 'POST', credentials: 'include' });
+      try {
+        localStorage.removeItem('role');
+        await fetch('/api/logout', { method: 'POST', credentials: 'include' });
+      } catch (err) { console.error(err); }
       window.location.href = '/';
     }
 
     async function sendAlert(title, message, priority) {
       const alertMsg = document.getElementById('alertMsg');
+      alertMsg.textContent = 'Sending alert...';
+      alertMsg.className = 'small subtle';
       try {
-        alertMsg.textContent = 'Sending alert...';
-        alertMsg.className = 'message info';
         const res = await fetch('/api/send_alert', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {'Content-Type':'application/json'},
           credentials: 'include',
           body: JSON.stringify({ title, message, priority })
         });
         const result = await res.json();
-        if (result.status === 'ok') {
-          alertMsg.textContent = '✅ Alert sent!';
-          alertMsg.className = 'message success';
+        if (result?.status === 'ok') {
+          alertMsg.textContent = '✅ Alert sent';
+          alertMsg.className = 'small';
           loadAlerts();
-          setTimeout(() => alertMsg.textContent = '', 3000);
+          setTimeout(()=>alertMsg.textContent = '', 3000);
         } else {
-          alertMsg.textContent = result.message || '❌ Failed to send alert';
-          alertMsg.className = 'message error';
+          alertMsg.textContent = result?.message || '❌ Failed to send';
+          alertMsg.className = 'small';
         }
-      } catch {
-        alertMsg.textContent = 'Network error.';
-        alertMsg.className = 'message error';
+      } catch (err) {
+        console.error(err);
+        alertMsg.textContent = 'Network error';
+        alertMsg.className = 'small';
       }
     }
 
+    // Custom modal controls
     function showCustomAlert() {
-      document.getElementById('customModal').classList.remove('hidden');
+      const m = document.getElementById('customModal');
+      m.style.display = 'flex';
+      m.classList.remove('hidden');
     }
-
     function closeCustomModal() {
-      document.getElementById('customModal').classList.add('hidden');
+      const m = document.getElementById('customModal');
+      m.style.display = 'none';
+      m.classList.add('hidden');
       document.getElementById('customAlertForm').reset();
     }
-
-    document.getElementById('customAlertForm').addEventListener('submit', async e => {
+    document.getElementById('customAlertForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const title = customTitle.value.trim();
-      const message = customMessage.value.trim();
-      const priority = customPriority.value;
+      const title = document.getElementById('customTitle').value.trim();
+      const message = document.getElementById('customMessage').value.trim();
+      const priority = document.getElementById('customPriority').value;
+      if (!title || !message) return;
       await sendAlert(title, message, priority);
       closeCustomModal();
     });
 
+    // Alerts rendering & filtering
+    function renderAlerts(list) {
+      const el = document.getElementById('alerts-list');
+      if (!list || !list.length) {
+        el.innerHTML = '<p class="subtle">No alerts yet.</p>';
+        return;
+      }
+      el.innerHTML = '';
+      list.forEach(a => {
+        displayAlert(a, false);
+      });
+    }
+
+    function displayAlert(a, prepend = true) {
+      const el = document.getElementById('alerts-list');
+      const pr = (a.priority || 'medium').toLowerCase();
+      const wrapper = document.createElement('div');
+      wrapper.className = 'alert-card';
+      wrapper.style.margin = '8px 0';
+      wrapper.style.padding = '12px';
+      wrapper.style.borderRadius = '10px';
+      wrapper.style.background = 'linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.02))';
+      wrapper.innerHTML = `
+        <div style="display:flex; justify-content:space-between; gap:10px; align-items:center;">
+          <div style="font-weight:800;">${escapeHtml(a.title)}</div>
+          <div style="flex-shrink:0;">
+            <span style="padding:6px 10px; border-radius:999px; font-weight:800; font-size:12px; color:#081018; background:${badgeColor(pr)}">${(a.priority||'MEDIUM').toUpperCase()}</span>
+          </div>
+        </div>
+        <div style="margin-top:8px; color:var(--muted)">${escapeHtml(a.message)}</div>
+        <div style="margin-top:8px; font-size:12px; color:rgba(230,238,245,0.7)">📅 ${new Date(a.timestamp).toLocaleString()}</div>
+      `;
+      if (prepend) el.insertBefore(wrapper, el.firstChild);
+      else el.appendChild(wrapper);
+    }
+
+    function badgeColor(pr) {
+      if (pr === 'critical') return '#ff6b6b';
+      if (pr === 'high') return '#ff8b60';
+      if (pr === 'low') return '#7bed9f';
+      return '#f7c654';
+    }
+
+    // Stats
+    function updateStats(list) {
+      const today = new Date(); today.setHours(0,0,0,0);
+      const todayCount = list.filter(a => new Date(a.timestamp) >= today).length;
+      const crit = list.filter(a => (a.priority||'').toLowerCase() === 'critical').length;
+      const last = list[0] ? new Date(list[0].timestamp).toLocaleString() : '—';
+      document.getElementById('stat-alerts-today').textContent = todayCount;
+      document.getElementById('stat-critical').textContent = crit;
+      document.getElementById('stat-last').textContent = last;
+    }
+
+    // Filters
+    function applyFilters() {
+      const key = (document.getElementById('filter-key').value || '').toLowerCase();
+      const prio = (document.getElementById('filter-priority').value || '').toLowerCase();
+      const filtered = ALL_ALERTS.filter(a => {
+        const txt = (a.title + ' ' + a.message).toLowerCase();
+        const mKey = key ? txt.includes(key) : true;
+        const mPr = prio ? ((a.priority||'').toLowerCase() === prio) : true;
+        return mKey && mPr;
+      });
+      renderAlerts(filtered);
+      updateStats(filtered);
+    }
+    function resetFilters() {
+      document.getElementById('filter-key').value = '';
+      document.getElementById('filter-priority').value = '';
+      renderAlerts(ALL_ALERTS);
+      updateStats(ALL_ALERTS);
+    }
+
+    function toggleCollapsible(id) {
+      const el = document.getElementById(id);
+      el.classList.toggle('open');
+    }
+
+    // Load initial alerts via API (fallback if socket didn't push history)
     async function loadAlerts() {
       try {
         const res = await fetch('/api/alerts', { credentials: 'include' });
         const data = await res.json();
-        if (data.ok && data.alerts.length) {
+        if (data.ok && Array.isArray(data.alerts)) {
           ALL_ALERTS = data.alerts;
           renderAlerts(ALL_ALERTS);
           updateStats(ALL_ALERTS);
@@ -562,77 +505,31 @@
           document.getElementById('alerts-list').innerHTML = '<p class="subtle">No alerts yet.</p>';
           updateStats([]);
         }
-      } catch {
+      } catch (err) {
+        console.error('Failed to load initial alerts', err);
         document.getElementById('alerts-list').innerHTML = '<p class="subtle">Error loading alerts.</p>';
       }
     }
 
-    function renderAlerts(list) {
-      const alertsList = document.getElementById('alerts-list');
-      if (!list || !list.length) {
-        alertsList.innerHTML = '<p class="subtle">No alerts yet.</p>';
-        return;
+    // small utility to avoid XSS when inserting innerHTML
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/[&<>"'\/]/g, function (s) {
+        return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;', '/': '&#x2F;' })[s];
+      });
+    }
+
+    // start
+    window.addEventListener('DOMContentLoaded', () => {
+      // register firebase messaging SW (you placed it at root)
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/firebase-messaging-sw.js')
+          .then(reg => console.log('✅ FCM Service Worker registered:', reg.scope))
+          .catch(err => console.warn('❌ FCM registration failed:', err));
       }
-      alertsList.innerHTML = '';
-      list.forEach(alert => {
-        const date = new Date(alert.timestamp);
-        const pr = (alert.priority || 'medium').toLowerCase();
-        const card = document.createElement('div');
-        card.className = `alert-card priority-${pr}`;
-        card.innerHTML = `
-          <div class="alert-header">
-            <strong>${alert.title}</strong>
-            <span class="badge badge-${pr}">${(alert.priority || 'MEDIUM').toUpperCase()}</span>
-          </div>
-          <p class="small">${alert.message}</p>
-          <small class="subtle">📅 ${date.toLocaleString()}</small>`;
-        alertsList.appendChild(card);
-      });
-    }
-
-    function updateStats(list) {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const todayCount = list.filter(a => new Date(a.timestamp) >= today).length;
-      const crit = list.filter(a => (a.priority || '').toLowerCase() === 'critical').length;
-      const last = list[0] ? new Date(list[0].timestamp).toLocaleString() : '—';
-      document.getElementById('stat-alerts-today').textContent = todayCount;
-      document.getElementById('stat-critical').textContent = crit;
-      document.getElementById('stat-last').textContent = last;
-    }
-
-    function applyFilters() {
-      const key = (document.getElementById('filter-key').value || '').toLowerCase();
-      const prio = (document.getElementById('filter-priority').value || '').toLowerCase();
-      const fd = document.getElementById('filter-from-date').value;
-      const td = document.getElementById('filter-to-date').value;
-      const fromDT = fd ? new Date(fd + 'T00:00').getTime() : null;
-      const toDT = td ? new Date(td + 'T23:59').getTime() : null;
-      const filtered = ALL_ALERTS.filter(a => {
-        const text = ((a.title || '') + ' ' + (a.message || '')).toLowerCase();
-        const matchText = key ? text.includes(key) : true;
-        const matchPrio = prio ? (a.priority || '').toLowerCase() === prio : true;
-        const t = new Date(a.timestamp).getTime();
-        return matchText && matchPrio && (!fromDT || t >= fromDT) && (!toDT || t <= toDT);
-      });
-      renderAlerts(filtered);
-      updateStats(filtered);
-    }
-
-    function resetFilters() {
-      document.getElementById('filter-key').value = '';
-      document.getElementById('filter-priority').value = '';
-      document.getElementById('filter-from-date').value = '';
-      document.getElementById('filter-to-date').value = '';
-      renderAlerts(ALL_ALERTS);
-      updateStats(ALL_ALERTS);
-    }
-
-    function toggleCollapsible(id) {
-      document.getElementById(id).classList.toggle('open');
-    }
-
-    window.addEventListener('DOMContentLoaded', loadAlerts);
+      // load alerts in case socket doesn't provide history
+      loadAlerts();
+    });
   </script>
 </body>
 </html>
