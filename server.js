@@ -96,8 +96,21 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(cors({ origin: true, credentials: true }));
-app.use("/static", express.static(path.join(__dirname, "static"))); // ✅ Serve all static assets
-app.use("/.well-known", express.static(path.join(__dirname, "..", ".well-known")));
+app.use("/static", express.static(path.join(__dirname, "static")));
+
+// =====================================================
+// 🔥 FIXED: ROOT-LEVEL .well-known AUTO DETECT ROUTE
+// =====================================================
+app.use("/.well-known", (req, res, next) => {
+  const wellKnownPath = path.join(__dirname, ".well-known");
+
+  if (fs.existsSync(wellKnownPath)) {
+    return express.static(wellKnownPath)(req, res, next);
+  } else {
+    console.error("❌ .well-known folder NOT FOUND at:", wellKnownPath);
+    return res.status(404).send("Not Found");
+  }
+});
 
 // =====================================================
 // 🔹 STATIC FILES & SERVICE WORKERS
@@ -106,12 +119,10 @@ app.get("/manifest.json", (req, res) => {
   res.sendFile(path.join(__dirname, "manifest.json"));
 });
 
-// ✅ Serve Firebase Messaging Service Worker from root
 app.get("/firebase-messaging-sw.js", (req, res) => {
   res.sendFile(path.join(__dirname, "firebase-messaging-sw.js"));
 });
 
-// ✅ Serve Firebase Config (FIXED — from root, not static/js)
 app.get("/firebase-config.js", (req, res) => {
   res.sendFile(path.join(__dirname, "firebase-config.js"));
 });
@@ -269,7 +280,7 @@ app.get("/api/me", authMiddleware, (req, res) => {
   res.json({ ok: true, user: req.user });
 });
 
-// ✅ Change Password
+// 🔹 Change Password
 app.post("/api/change-password", authMiddleware, (req, res) => {
   const { currentPassword, newPassword } = req.body || {};
   if (!currentPassword || !newPassword)
@@ -287,7 +298,7 @@ app.post("/api/change-password", authMiddleware, (req, res) => {
   res.json({ ok: true, message: "Password updated successfully" });
 });
 
-// ✅ Delete Account
+// 🔹 Delete Account
 app.delete("/api/delete-account", authMiddleware, (req, res) => {
   db.prepare("DELETE FROM users WHERE username = ?").run(req.user.username);
   res.clearCookie("token");
