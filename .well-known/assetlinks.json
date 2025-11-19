@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.cctvalert.app",
+      "sha256_cert_fingerprints": [
+        "19:6B:DB:DC:9E:F9:32:8D:66:00:BC:6A:FE:FF:28:1E:CA:A2:AA:F1:97:CA:0A:E4:40:8F:F0:88:ED:5A:19:6E"
+      ]
+    }
+  }
+]

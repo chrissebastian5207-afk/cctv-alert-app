@@ -4,12 +4,12 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <!-- ✅ PWA + Mobile App Meta -->
-<meta name="theme-color" content="#1f1f1f">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<link rel="manifest" href="/manifest.json">
-<link rel="icon" sizes="192x192" href="/static/icons/icon-192x192.png">
-<link rel="apple-touch-icon" sizes="512x512" href="/static/icons/icon-512x512.png">
+  <meta name="theme-color" content="#1f1f1f">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" sizes="192x192" href="/static/icons/icon-192x192.png">
+  <link rel="apple-touch-icon" sizes="512x512" href="/static/icons/icon-512x512.png">
 
   <title>Settings | CCTV Alert System</title>
 
@@ -218,10 +218,21 @@
   <section style="border:none;">
     <a href="/privacy" class="link-btn">📄 Privacy Policy</a>
     <a href="/contact" class="link-btn">📧 Contact Developer</a>
-    <a href="/user" class="link-btn">⬅️ Back to Dashboard</a>
+    <!-- ✅ FIXED: Dynamic dashboard link based on role -->
+    <a href="#" id="dashboardLink" class="link-btn" onclick="goToDashboard(); return false;">⬅️ Back to Dashboard</a>
   </section>
 
   <script>
+    // ✅ Dynamic Dashboard Navigation Based on Role
+    function goToDashboard() {
+      const role = localStorage.getItem('role');
+      if (role === 'admin') {
+        window.location.href = '/admin';
+      } else {
+        window.location.href = '/user';
+      }
+    }
+
     // ✅ Theme Toggle
     const toggle = document.getElementById("darkModeToggle");
     const currentTheme = localStorage.getItem("theme") || "light";
@@ -251,7 +262,7 @@
         const response = await fetch("/api/change-password", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          credentials: "include", // ✅ include cookie
+          credentials: "include",
           body: JSON.stringify({ currentPassword, newPassword }),
         });
         const result = await response.json();

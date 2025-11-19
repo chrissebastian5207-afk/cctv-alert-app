@@ -97,6 +97,7 @@ app.use(cookieParser());
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(cors({ origin: true, credentials: true }));
 app.use("/static", express.static(path.join(__dirname, "static"))); // ✅ Serve all static assets
+app.use("/.well-known", express.static(path.join(__dirname, ".well-known")));
 
 // =====================================================
 // 🔹 STATIC FILES & SERVICE WORKERS
